@@ -4,6 +4,7 @@
 - For this project, stay aligned to ISOXML v3 until the app reaches acceptable usability; the UI should show source and target fields side by side with their guidance lines, allow selecting a guidance line to clone, and immediately show it added to the target field.
 - For this project, the user workflow must be ZIP-first: the app should accept the exported .zip package containing the TASKDATA folder and return the same packaged .zip structure for reimport.
 - For this project, localize existing user-facing strings first using neutral and Italian RESX files before adding more strings later.
+- For this project, the app icon should use a transparent background with a green Fendt-style disc containing two parallel horizontal white guide lines and a tilde-like curved line above them, using bottom-to-top line colors white, red, white.
 
 ## Linee guida del progetto
 - For this project's ISOXML import workflow, existing field objects cannot be modified in place on reimport; TASKDATA imports are treated as additions with conflict checks, so prefer generating a new field and replacing the original for experiments. If a new field has boundaries matching an existing field, the system raises a conflict-resolution prompt to choose the primary field; merge behavior is still unknown, so experiments should start with a new field without LSG and then add an imported LSG for reimport testing.

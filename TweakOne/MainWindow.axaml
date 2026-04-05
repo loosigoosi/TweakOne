@@ -10,6 +10,7 @@
         Height="900"
         MinWidth="1100"
         MinHeight="700"
+        Icon="/Assets/AppIcon.png"
         Title="{Binding Strings.WindowTitle}">
     <Grid RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*,Auto,*" Margin="16">
         <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="12">
