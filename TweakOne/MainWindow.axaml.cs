@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using TweakOne.Localization;
@@ -12,9 +14,12 @@ namespace TweakOne;
 public partial class MainWindow : Window
 {
     private static readonly LocalizedStrings Strings = LocalizedStrings.Instance;
+    private const double WheelZoomStep = 0.25d;
 
     private IsoXmlTaskDataPackage? _sourcePackage;
     private IsoXmlTaskDataPackage? _targetPackage;
+    private InputElement? _activePreviewViewport;
+    private Point _lastPreviewPointerPosition;
 
     public MainWindow()
     {
@@ -133,6 +138,91 @@ public partial class MainWindow : Window
         ViewModel.ResetRectificationTargetPreviewZoom();
     }
 
+    private void CloneSourcePreview_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginPreviewPan(sender, e);
+    }
+
+    private void CloneSourcePreview_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        UpdatePreviewPan(sender, ViewModel.TranslateCloneSourcePreviewPan, e);
+    }
+
+    private void CloneSourcePreview_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        EndPreviewPan(sender, e);
+    }
+
+    private void CloneTargetPreview_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginPreviewPan(sender, e);
+    }
+
+    private void CloneTargetPreview_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        UpdatePreviewPan(sender, ViewModel.TranslateCloneTargetPreviewPan, e);
+    }
+
+    private void CloneTargetPreview_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        EndPreviewPan(sender, e);
+    }
+
+    private void RectificationSourcePreview_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginPreviewPan(sender, e);
+    }
+
+    private void RectificationSourcePreview_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        UpdatePreviewPan(sender, ViewModel.TranslateRectificationSourcePreviewPan, e);
+    }
+
+    private void RectificationSourcePreview_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        EndPreviewPan(sender, e);
+    }
+
+    private void RectificationTargetPreview_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginPreviewPan(sender, e);
+    }
+
+    private void RectificationTargetPreview_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        UpdatePreviewPan(sender, ViewModel.TranslateRectificationTargetPreviewPan, e);
+    }
+
+    private void RectificationTargetPreview_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        EndPreviewPan(sender, e);
+    }
+
+    private void PreviewViewport_PointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        _activePreviewViewport = null;
+    }
+
+    private void CloneSourcePreview_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        ZoomPreviewAtPointer(sender, ViewModel.CloneSourcePreviewZoom, ViewModel.CloneSourcePreviewOffsetX, ViewModel.CloneSourcePreviewOffsetY, zoom => ViewModel.CloneSourcePreviewZoom = zoom, ViewModel.SetCloneSourcePreviewPan, e);
+    }
+
+    private void CloneTargetPreview_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        ZoomPreviewAtPointer(sender, ViewModel.CloneTargetPreviewZoom, ViewModel.CloneTargetPreviewOffsetX, ViewModel.CloneTargetPreviewOffsetY, zoom => ViewModel.CloneTargetPreviewZoom = zoom, ViewModel.SetCloneTargetPreviewPan, e);
+    }
+
+    private void RectificationSourcePreview_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        ZoomPreviewAtPointer(sender, ViewModel.RectificationSourcePreviewZoom, ViewModel.RectificationSourcePreviewOffsetX, ViewModel.RectificationSourcePreviewOffsetY, zoom => ViewModel.RectificationSourcePreviewZoom = zoom, ViewModel.SetRectificationSourcePreviewPan, e);
+    }
+
+    private void RectificationTargetPreview_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        ZoomPreviewAtPointer(sender, ViewModel.RectificationTargetPreviewZoom, ViewModel.RectificationTargetPreviewOffsetX, ViewModel.RectificationTargetPreviewOffsetY, zoom => ViewModel.RectificationTargetPreviewZoom = zoom, ViewModel.SetRectificationTargetPreviewPan, e);
+    }
+
     private void AnalyzeRectification_Click(object? sender, RoutedEventArgs e)
     {
         try
@@ -197,5 +287,97 @@ public partial class MainWindow : Window
         {
             ViewModel.StatusMessage = exception.Message;
         }
+    }
+
+    private void BeginPreviewPan(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not InputElement viewport)
+        {
+            return;
+        }
+
+        if (!e.GetCurrentPoint(viewport).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        _activePreviewViewport = viewport;
+        _lastPreviewPointerPosition = e.GetPosition(viewport);
+        e.Pointer.Capture(viewport);
+        e.Handled = true;
+    }
+
+    private void UpdatePreviewPan(object? sender, Action<double, double> applyPanDelta, PointerEventArgs e)
+    {
+        if (sender is not InputElement viewport)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(_activePreviewViewport, viewport))
+        {
+            return;
+        }
+
+        var currentPosition = e.GetPosition(viewport);
+        applyPanDelta(currentPosition.X - _lastPreviewPointerPosition.X, currentPosition.Y - _lastPreviewPointerPosition.Y);
+        _lastPreviewPointerPosition = currentPosition;
+        e.Handled = true;
+    }
+
+    private void EndPreviewPan(object? sender, PointerReleasedEventArgs e)
+    {
+        if (sender is not InputElement viewport)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(_activePreviewViewport, viewport))
+        {
+            return;
+        }
+
+        e.Pointer.Capture(null);
+        _activePreviewViewport = null;
+        e.Handled = true;
+    }
+
+    private static void ZoomPreviewAtPointer(object? sender, double currentZoom, double currentOffsetX, double currentOffsetY, Action<double> setZoom, Action<double, double> setPan, PointerWheelEventArgs e)
+    {
+        if (sender is not InputElement viewport)
+        {
+            return;
+        }
+
+        var updatedZoom = AdjustZoom(currentZoom, e);
+        if (Math.Abs(updatedZoom - currentZoom) <= double.Epsilon)
+        {
+            return;
+        }
+
+        var pointerPosition = e.GetPosition(viewport);
+        var zoomRatio = updatedZoom / currentZoom;
+        var updatedOffsetX = pointerPosition.X - ((pointerPosition.X - currentOffsetX) * zoomRatio);
+        var updatedOffsetY = pointerPosition.Y - ((pointerPosition.Y - currentOffsetY) * zoomRatio);
+
+        setZoom(updatedZoom);
+        setPan(updatedOffsetX, updatedOffsetY);
+    }
+
+    private static double AdjustZoom(double currentZoom, PointerWheelEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            return currentZoom;
+        }
+
+        var delta = e.Delta.Y;
+        if (Math.Abs(delta) <= double.Epsilon)
+        {
+            return currentZoom;
+        }
+
+        e.Handled = true;
+        return currentZoom + (delta > 0d ? WheelZoomStep : -WheelZoomStep);
     }
 }

@@ -13,4 +13,10 @@
 - For this project's ISOXML workflow, newly arriving Tasks may create new fields instead of reusing the fields referenced by the Task, reinforcing the need to work through generated replacement fields during experiments.
 - For this project, a preferable refinement is to let the user vary the offset and reposition both AB points onto intersections with the target field boundary segments, keeping the UI lightweight.
 - For the real rectification workflow, the regression-line validation should use the row spacing as the desired offset, then place the final rectified guideline at machine width offset computed as the number of rows × row spacing. Do not auto-choose the final machine-width offset direction yet; generate both offset directions and let the user delete the unneeded one.
-- For this project's field previews, guidance lines should be rendered with a 1-pixel stroke thickness.
+- For this project's ISOXML workflow, it should be possible to deliver guideline additions as a TASK update payload instead of importing a replacement field, because in-cab systems can persist added guidelines through TASK import onto the existing field.
+- For rectification, when the unacceptable deviation is less than twice the desired tolerance, use a two-pass algorithm that outputs four lines: two outer rectified lines and two inner smoothed lines offset by half the excess deviation.
+
+## Field Previews
+- For this project's field previews, guidance lines should be rendered with a 1-pixel stroke thickness, and zoom should react to the mouse wheel, ensuring that guidance lines remain visually 1 pixel thick even while zooming.
+- For this project's field previews, use Ctrl+mouse-wheel for zoom because default wheel zoom in Avalonia conflicts with scrolling. Additionally, zoom should be centered on the pointer. Wheel-based zoom should not react when the pointer is over the scrollbars; the zoom anchor must stay centered on the actual viewport content.
+- For this project's field previews, the maximum zoom should be 800%.

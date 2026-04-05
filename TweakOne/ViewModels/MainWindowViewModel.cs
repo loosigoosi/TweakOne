@@ -13,8 +13,9 @@ namespace TweakOne.ViewModels;
 
 internal sealed class MainWindowViewModel : ObservableObject
 {
+    internal const double BasePreviewCanvasSize = 320d;
     private const double MinimumPreviewZoom = 0.5d;
-    private const double MaximumPreviewZoom = 4d;
+    private const double MaximumPreviewZoom = 8d;
     private readonly IsoXmlGuidancePathGenerator _generator = new();
     private readonly IsoXmlGuidanceRectificationService _rectificationService = new();
     private TaskDocumentViewModel? _sourceDocument;
@@ -30,12 +31,20 @@ internal sealed class MainWindowViewModel : ObservableObject
     private double _translationOffsetMeters = 10d;
     private double _cloneSourcePreviewZoom = 1d;
     private double _cloneTargetPreviewZoom = 1d;
+    private double _cloneSourcePreviewOffsetX;
+    private double _cloneSourcePreviewOffsetY;
+    private double _cloneTargetPreviewOffsetX;
+    private double _cloneTargetPreviewOffsetY;
     private string _rectificationDesignator = string.Empty;
     private double _rectificationOffsetMeters = 0.75d;
     private int _rectificationRowCount = 4;
     private double _rectificationToleranceMeters = 0.10d;
     private double _rectificationSourcePreviewZoom = 1d;
     private double _rectificationTargetPreviewZoom = 1d;
+    private double _rectificationSourcePreviewOffsetX;
+    private double _rectificationSourcePreviewOffsetY;
+    private double _rectificationTargetPreviewOffsetX;
+    private double _rectificationTargetPreviewOffsetY;
     private string _rectificationResultDisplay = LocalizedStrings.Instance.RectificationResultNotAnalyzed;
     private string _statusMessage = LocalizedStrings.Instance.StatusInitial;
 
@@ -45,9 +54,11 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<PartfieldViewModel> TargetPartfields { get; } = new();
 
-    public ObservableCollection<PreviewPolylineViewModel> SourcePreviewShapes { get; } = new();
+    public ObservableCollection<PreviewPolylineViewModel> CloneSourcePreviewShapes { get; } = new();
 
-    public ObservableCollection<PreviewPolylineViewModel> TargetPreviewShapes { get; } = new();
+    public ObservableCollection<PreviewPolylineViewModel> CloneTargetPreviewShapes { get; } = new();
+
+    public ObservableCollection<PreviewPolylineViewModel> RectificationSourcePreviewShapes { get; } = new();
 
     public ObservableCollection<PreviewPolylineViewModel> RectificationTargetPreviewShapes { get; } = new();
 
@@ -90,7 +101,10 @@ internal sealed class MainWindowViewModel : ObservableObject
             }
 
             SelectedSourceGuidancePath = value?.GuidancePaths.FirstOrDefault();
-            RefreshSourcePreview();
+            ResetCloneSourcePreviewPan();
+            ResetRectificationSourcePreviewPan();
+            RefreshCloneSourcePreview();
+            RefreshRectificationSourcePreview();
             OnPropertyChanged(nameof(SelectedSourcePartfieldSummaryDisplay));
             OnPropertyChanged(nameof(CanCloneGuidancePath));
             InvalidateRectificationResult();
@@ -108,7 +122,9 @@ internal sealed class MainWindowViewModel : ObservableObject
             }
 
             SelectedTargetGuidancePath = value?.GuidancePaths.LastOrDefault();
-            RefreshTargetPreview();
+            ResetCloneTargetPreviewPan();
+            ResetRectificationTargetPreviewPan();
+            RefreshCloneTargetPreview();
             OnPropertyChanged(nameof(SelectedTargetPartfieldSummaryDisplay));
             OnPropertyChanged(nameof(CanCloneGuidancePath));
             OnPropertyChanged(nameof(CanDeleteTargetGuidancePath));
@@ -143,7 +159,8 @@ internal sealed class MainWindowViewModel : ObservableObject
                 RectificationDesignator = Strings.FormatRectifiedGuidanceDesignator(value.DisplayName);
             }
 
-            RefreshSourcePreview();
+            RefreshCloneSourcePreview();
+            RefreshRectificationSourcePreview();
             OnPropertyChanged(nameof(CanCloneGuidancePath));
             OnPropertyChanged(nameof(CanAnalyzeRectification));
             InvalidateRectificationResult();
@@ -160,7 +177,7 @@ internal sealed class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            RefreshTargetPreview();
+            RefreshCloneTargetPreview();
             OnPropertyChanged(nameof(CanDeleteTargetGuidancePath));
         }
     }
@@ -180,18 +197,58 @@ internal sealed class MainWindowViewModel : ObservableObject
     public double CloneSourcePreviewZoom
     {
         get => _cloneSourcePreviewZoom;
-        set => SetPreviewZoom(ref _cloneSourcePreviewZoom, value, nameof(CloneSourcePreviewZoom), nameof(CloneSourcePreviewZoomDisplay));
+        set
+        {
+            if (SetPreviewZoom(ref _cloneSourcePreviewZoom, value, nameof(CloneSourcePreviewZoom), nameof(CloneSourcePreviewZoomDisplay), nameof(CloneSourcePreviewCanvasSize)))
+            {
+                RefreshCloneSourcePreview();
+            }
+        }
     }
 
     public string CloneSourcePreviewZoomDisplay => FormatPreviewZoom(CloneSourcePreviewZoom);
 
+    public double CloneSourcePreviewCanvasSize => BasePreviewCanvasSize * CloneSourcePreviewZoom;
+
+    public double CloneSourcePreviewOffsetX
+    {
+        get => _cloneSourcePreviewOffsetX;
+        private set => SetProperty(ref _cloneSourcePreviewOffsetX, value);
+    }
+
+    public double CloneSourcePreviewOffsetY
+    {
+        get => _cloneSourcePreviewOffsetY;
+        private set => SetProperty(ref _cloneSourcePreviewOffsetY, value);
+    }
+
     public double CloneTargetPreviewZoom
     {
         get => _cloneTargetPreviewZoom;
-        set => SetPreviewZoom(ref _cloneTargetPreviewZoom, value, nameof(CloneTargetPreviewZoom), nameof(CloneTargetPreviewZoomDisplay));
+        set
+        {
+            if (SetPreviewZoom(ref _cloneTargetPreviewZoom, value, nameof(CloneTargetPreviewZoom), nameof(CloneTargetPreviewZoomDisplay), nameof(CloneTargetPreviewCanvasSize)))
+            {
+                RefreshCloneTargetPreview();
+            }
+        }
     }
 
     public string CloneTargetPreviewZoomDisplay => FormatPreviewZoom(CloneTargetPreviewZoom);
+
+    public double CloneTargetPreviewCanvasSize => BasePreviewCanvasSize * CloneTargetPreviewZoom;
+
+    public double CloneTargetPreviewOffsetX
+    {
+        get => _cloneTargetPreviewOffsetX;
+        private set => SetProperty(ref _cloneTargetPreviewOffsetX, value);
+    }
+
+    public double CloneTargetPreviewOffsetY
+    {
+        get => _cloneTargetPreviewOffsetY;
+        private set => SetProperty(ref _cloneTargetPreviewOffsetY, value);
+    }
 
     public string RectificationDesignator
     {
@@ -208,18 +265,58 @@ internal sealed class MainWindowViewModel : ObservableObject
     public double RectificationSourcePreviewZoom
     {
         get => _rectificationSourcePreviewZoom;
-        set => SetPreviewZoom(ref _rectificationSourcePreviewZoom, value, nameof(RectificationSourcePreviewZoom), nameof(RectificationSourcePreviewZoomDisplay));
+        set
+        {
+            if (SetPreviewZoom(ref _rectificationSourcePreviewZoom, value, nameof(RectificationSourcePreviewZoom), nameof(RectificationSourcePreviewZoomDisplay), nameof(RectificationSourcePreviewCanvasSize)))
+            {
+                RefreshRectificationSourcePreview();
+            }
+        }
     }
 
     public string RectificationSourcePreviewZoomDisplay => FormatPreviewZoom(RectificationSourcePreviewZoom);
 
+    public double RectificationSourcePreviewCanvasSize => BasePreviewCanvasSize * RectificationSourcePreviewZoom;
+
+    public double RectificationSourcePreviewOffsetX
+    {
+        get => _rectificationSourcePreviewOffsetX;
+        private set => SetProperty(ref _rectificationSourcePreviewOffsetX, value);
+    }
+
+    public double RectificationSourcePreviewOffsetY
+    {
+        get => _rectificationSourcePreviewOffsetY;
+        private set => SetProperty(ref _rectificationSourcePreviewOffsetY, value);
+    }
+
     public double RectificationTargetPreviewZoom
     {
         get => _rectificationTargetPreviewZoom;
-        set => SetPreviewZoom(ref _rectificationTargetPreviewZoom, value, nameof(RectificationTargetPreviewZoom), nameof(RectificationTargetPreviewZoomDisplay));
+        set
+        {
+            if (SetPreviewZoom(ref _rectificationTargetPreviewZoom, value, nameof(RectificationTargetPreviewZoom), nameof(RectificationTargetPreviewZoomDisplay), nameof(RectificationTargetPreviewCanvasSize)))
+            {
+                RefreshRectificationTargetPreview();
+            }
+        }
     }
 
     public string RectificationTargetPreviewZoomDisplay => FormatPreviewZoom(RectificationTargetPreviewZoom);
+
+    public double RectificationTargetPreviewCanvasSize => BasePreviewCanvasSize * RectificationTargetPreviewZoom;
+
+    public double RectificationTargetPreviewOffsetX
+    {
+        get => _rectificationTargetPreviewOffsetX;
+        private set => SetProperty(ref _rectificationTargetPreviewOffsetX, value);
+    }
+
+    public double RectificationTargetPreviewOffsetY
+    {
+        get => _rectificationTargetPreviewOffsetY;
+        private set => SetProperty(ref _rectificationTargetPreviewOffsetY, value);
+    }
 
     public double RectificationOffsetMeters
     {
@@ -437,22 +534,87 @@ internal sealed class MainWindowViewModel : ObservableObject
         return Strings.FormatRectificationCandidateSummary(directionLabel, detail);
     }
 
-    public void ResetCloneSourcePreviewZoom() => CloneSourcePreviewZoom = 1d;
-
-    public void ResetCloneTargetPreviewZoom() => CloneTargetPreviewZoom = 1d;
-
-    public void ResetRectificationSourcePreviewZoom() => RectificationSourcePreviewZoom = 1d;
-
-    public void ResetRectificationTargetPreviewZoom() => RectificationTargetPreviewZoom = 1d;
-
-    private void RefreshSourcePreview()
+    public void ResetCloneSourcePreviewZoom()
     {
-        ReplacePreviewShapes(SourcePreviewShapes, SelectedSourcePartfield, SelectedSourceGuidancePath);
+        CloneSourcePreviewZoom = 1d;
+        ResetCloneSourcePreviewPan();
     }
 
-    private void RefreshTargetPreview()
+    public void ResetCloneTargetPreviewZoom()
     {
-        ReplacePreviewShapes(TargetPreviewShapes, SelectedTargetPartfield, SelectedTargetGuidancePath);
+        CloneTargetPreviewZoom = 1d;
+        ResetCloneTargetPreviewPan();
+    }
+
+    public void ResetRectificationSourcePreviewZoom()
+    {
+        RectificationSourcePreviewZoom = 1d;
+        ResetRectificationSourcePreviewPan();
+    }
+
+    public void ResetRectificationTargetPreviewZoom()
+    {
+        RectificationTargetPreviewZoom = 1d;
+        ResetRectificationTargetPreviewPan();
+    }
+
+    public void SetCloneSourcePreviewPan(double x, double y)
+    {
+        CloneSourcePreviewOffsetX = x;
+        CloneSourcePreviewOffsetY = y;
+    }
+
+    public void TranslateCloneSourcePreviewPan(double deltaX, double deltaY)
+    {
+        SetCloneSourcePreviewPan(CloneSourcePreviewOffsetX + deltaX, CloneSourcePreviewOffsetY + deltaY);
+    }
+
+    public void SetCloneTargetPreviewPan(double x, double y)
+    {
+        CloneTargetPreviewOffsetX = x;
+        CloneTargetPreviewOffsetY = y;
+    }
+
+    public void TranslateCloneTargetPreviewPan(double deltaX, double deltaY)
+    {
+        SetCloneTargetPreviewPan(CloneTargetPreviewOffsetX + deltaX, CloneTargetPreviewOffsetY + deltaY);
+    }
+
+    public void SetRectificationSourcePreviewPan(double x, double y)
+    {
+        RectificationSourcePreviewOffsetX = x;
+        RectificationSourcePreviewOffsetY = y;
+    }
+
+    public void TranslateRectificationSourcePreviewPan(double deltaX, double deltaY)
+    {
+        SetRectificationSourcePreviewPan(RectificationSourcePreviewOffsetX + deltaX, RectificationSourcePreviewOffsetY + deltaY);
+    }
+
+    public void SetRectificationTargetPreviewPan(double x, double y)
+    {
+        RectificationTargetPreviewOffsetX = x;
+        RectificationTargetPreviewOffsetY = y;
+    }
+
+    public void TranslateRectificationTargetPreviewPan(double deltaX, double deltaY)
+    {
+        SetRectificationTargetPreviewPan(RectificationTargetPreviewOffsetX + deltaX, RectificationTargetPreviewOffsetY + deltaY);
+    }
+
+    private void RefreshCloneSourcePreview()
+    {
+        ReplacePreviewShapes(CloneSourcePreviewShapes, SelectedSourcePartfield, SelectedSourceGuidancePath, CloneSourcePreviewZoom);
+    }
+
+    private void RefreshCloneTargetPreview()
+    {
+        ReplacePreviewShapes(CloneTargetPreviewShapes, SelectedTargetPartfield, SelectedTargetGuidancePath, CloneTargetPreviewZoom);
+    }
+
+    private void RefreshRectificationSourcePreview()
+    {
+        ReplacePreviewShapes(RectificationSourcePreviewShapes, SelectedSourcePartfield, SelectedSourceGuidancePath, RectificationSourcePreviewZoom);
     }
 
     private void RefreshRectificationTargetPreview()
@@ -461,6 +623,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             RectificationTargetPreviewShapes,
             SelectedTargetPartfield,
             null,
+            RectificationTargetPreviewZoom,
             _currentRectificationResult?.Candidates.Select(candidate => new PreviewOverlay(candidate.CandidateLine, candidate.SignedApplicationOffsetMeters >= 0d ? Brushes.LimeGreen : Brushes.YellowGreen)).ToArray());
     }
 
@@ -472,13 +635,17 @@ internal sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CanApplyRectification));
     }
 
-    private void SetPreviewZoom(ref double field, double value, string zoomPropertyName, string zoomDisplayPropertyName)
+    private bool SetPreviewZoom(ref double field, double value, string zoomPropertyName, string zoomDisplayPropertyName, string zoomCanvasSizePropertyName)
     {
         var clampedValue = Math.Clamp(value, MinimumPreviewZoom, MaximumPreviewZoom);
         if (SetProperty(ref field, clampedValue, zoomPropertyName))
         {
             OnPropertyChanged(zoomDisplayPropertyName);
+            OnPropertyChanged(zoomCanvasSizePropertyName);
+            return true;
         }
+
+        return false;
     }
 
     private static string FormatPreviewZoom(double zoom)
@@ -486,7 +653,27 @@ internal sealed class MainWindowViewModel : ObservableObject
         return $"{zoom * 100d:0}%";
     }
 
-    private static void ReplacePreviewShapes(ObservableCollection<PreviewPolylineViewModel> target, PartfieldViewModel? partfield, GuidancePathViewModel? highlightedGuidancePath, IReadOnlyList<PreviewOverlay>? overlays = null)
+    private void ResetCloneSourcePreviewPan()
+    {
+        SetCloneSourcePreviewPan(0d, 0d);
+    }
+
+    private void ResetCloneTargetPreviewPan()
+    {
+        SetCloneTargetPreviewPan(0d, 0d);
+    }
+
+    private void ResetRectificationSourcePreviewPan()
+    {
+        SetRectificationSourcePreviewPan(0d, 0d);
+    }
+
+    private void ResetRectificationTargetPreviewPan()
+    {
+        SetRectificationTargetPreviewPan(0d, 0d);
+    }
+
+    private static void ReplacePreviewShapes(ObservableCollection<PreviewPolylineViewModel> target, PartfieldViewModel? partfield, GuidancePathViewModel? highlightedGuidancePath, double zoom, IReadOnlyList<PreviewOverlay>? overlays = null)
     {
         target.Clear();
         if (partfield is null)
@@ -494,7 +681,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        foreach (var preview in partfield.CreatePreview(highlightedGuidancePath?.LineString, overlays))
+        foreach (var preview in partfield.CreatePreview(highlightedGuidancePath?.LineString, zoom, overlays))
         {
             target.Add(preview);
         }
@@ -554,10 +741,10 @@ internal sealed class PartfieldViewModel : ObservableObject
         OnPropertyChanged(nameof(Summary));
     }
 
-    public IReadOnlyList<PreviewPolylineViewModel> CreatePreview(IsoXmlLineString? highlightedGuidancePath, IReadOnlyList<MainWindowViewModel.PreviewOverlay>? overlays = null)
+    public IReadOnlyList<PreviewPolylineViewModel> CreatePreview(IsoXmlLineString? highlightedGuidancePath, double zoom, IReadOnlyList<MainWindowViewModel.PreviewOverlay>? overlays = null)
     {
         var rawShapes = CreateRawShapes(highlightedGuidancePath, overlays);
-        return Normalize(rawShapes);
+        return Normalize(rawShapes, zoom);
     }
 
     private List<RawPreviewShape> CreateRawShapes(IsoXmlLineString? highlightedGuidancePath, IReadOnlyList<MainWindowViewModel.PreviewOverlay>? overlays)
@@ -607,16 +794,16 @@ internal sealed class PartfieldViewModel : ObservableObject
         return rawShapes;
     }
 
-    private static IReadOnlyList<PreviewPolylineViewModel> Normalize(IReadOnlyList<RawPreviewShape> rawShapes)
+    private static IReadOnlyList<PreviewPolylineViewModel> Normalize(IReadOnlyList<RawPreviewShape> rawShapes, double zoom)
     {
         if (rawShapes.Count == 0)
         {
             return Array.Empty<PreviewPolylineViewModel>();
         }
 
-        const double width = 320d;
-        const double height = 320d;
-        const double padding = 16d;
+        var width = MainWindowViewModel.BasePreviewCanvasSize * zoom;
+        var height = MainWindowViewModel.BasePreviewCanvasSize * zoom;
+        var padding = 16d * zoom;
 
         var minNorth = rawShapes.SelectMany(static shape => shape.Points).Min(static point => point.North);
         var maxNorth = rawShapes.SelectMany(static shape => shape.Points).Max(static point => point.North);

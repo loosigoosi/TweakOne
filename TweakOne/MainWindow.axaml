@@ -48,30 +48,34 @@
                                 <Grid RowDefinitions="Auto,*" RowSpacing="8">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
                                         <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
-                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding CloneSourcePreviewZoom}" TickFrequency="0.25" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="8" Value="{Binding CloneSourcePreviewZoom}" TickFrequency="0.25" />
                                         <TextBlock Grid.Column="2" Text="{Binding CloneSourcePreviewZoomDisplay}" VerticalAlignment="Center" />
                                         <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetCloneSourcePreviewZoom_Click" />
                                     </Grid>
-                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <LayoutTransformControl>
-                                                <LayoutTransformControl.LayoutTransform>
-                                                    <ScaleTransform ScaleX="{Binding CloneSourcePreviewZoom}" ScaleY="{Binding CloneSourcePreviewZoom}" />
-                                                </LayoutTransformControl.LayoutTransform>
-                                                <ItemsControl ItemsSource="{Binding SourcePreviewShapes}" Width="320" Height="320">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <Canvas Width="320" Height="320" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
-                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </LayoutTransformControl>
-                                        </ScrollViewer>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328" ClipToBounds="True">
+                                        <Grid x:Name="CloneSourcePreviewViewport"
+                                              Background="Transparent"
+                                              PointerPressed="CloneSourcePreview_PointerPressed"
+                                              PointerMoved="CloneSourcePreview_PointerMoved"
+                                              PointerReleased="CloneSourcePreview_PointerReleased"
+                                              PointerCaptureLost="PreviewViewport_PointerCaptureLost"
+                                              PointerWheelChanged="CloneSourcePreview_PointerWheelChanged">
+                                            <ItemsControl ItemsSource="{Binding CloneSourcePreviewShapes}" Width="{Binding CloneSourcePreviewCanvasSize}" Height="{Binding CloneSourcePreviewCanvasSize}" IsHitTestVisible="False">
+                                                <ItemsControl.RenderTransform>
+                                                    <TranslateTransform X="{Binding CloneSourcePreviewOffsetX}" Y="{Binding CloneSourcePreviewOffsetY}" />
+                                                </ItemsControl.RenderTransform>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                        <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
                                     </Border>
                                 </Grid>
 
@@ -134,30 +138,34 @@
                                 <Grid RowDefinitions="Auto,*" RowSpacing="8">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
                                         <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
-                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding CloneTargetPreviewZoom}" TickFrequency="0.25" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="8" Value="{Binding CloneTargetPreviewZoom}" TickFrequency="0.25" />
                                         <TextBlock Grid.Column="2" Text="{Binding CloneTargetPreviewZoomDisplay}" VerticalAlignment="Center" />
                                         <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetCloneTargetPreviewZoom_Click" />
                                     </Grid>
-                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <LayoutTransformControl>
-                                                <LayoutTransformControl.LayoutTransform>
-                                                    <ScaleTransform ScaleX="{Binding CloneTargetPreviewZoom}" ScaleY="{Binding CloneTargetPreviewZoom}" />
-                                                </LayoutTransformControl.LayoutTransform>
-                                                <ItemsControl ItemsSource="{Binding TargetPreviewShapes}" Width="320" Height="320">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <Canvas Width="320" Height="320" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
-                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </LayoutTransformControl>
-                                        </ScrollViewer>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328" ClipToBounds="True">
+                                        <Grid x:Name="CloneTargetPreviewViewport"
+                                              Background="Transparent"
+                                              PointerPressed="CloneTargetPreview_PointerPressed"
+                                              PointerMoved="CloneTargetPreview_PointerMoved"
+                                              PointerReleased="CloneTargetPreview_PointerReleased"
+                                              PointerCaptureLost="PreviewViewport_PointerCaptureLost"
+                                              PointerWheelChanged="CloneTargetPreview_PointerWheelChanged">
+                                            <ItemsControl ItemsSource="{Binding CloneTargetPreviewShapes}" Width="{Binding CloneTargetPreviewCanvasSize}" Height="{Binding CloneTargetPreviewCanvasSize}" IsHitTestVisible="False">
+                                                <ItemsControl.RenderTransform>
+                                                    <TranslateTransform X="{Binding CloneTargetPreviewOffsetX}" Y="{Binding CloneTargetPreviewOffsetY}" />
+                                                </ItemsControl.RenderTransform>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                        <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
                                     </Border>
                                 </Grid>
 
@@ -210,30 +218,34 @@
                                 <Grid RowDefinitions="Auto,*" RowSpacing="8">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
                                         <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
-                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding RectificationSourcePreviewZoom}" TickFrequency="0.25" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="8" Value="{Binding RectificationSourcePreviewZoom}" TickFrequency="0.25" />
                                         <TextBlock Grid.Column="2" Text="{Binding RectificationSourcePreviewZoomDisplay}" VerticalAlignment="Center" />
                                         <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetRectificationSourcePreviewZoom_Click" />
                                     </Grid>
-                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <LayoutTransformControl>
-                                                <LayoutTransformControl.LayoutTransform>
-                                                    <ScaleTransform ScaleX="{Binding RectificationSourcePreviewZoom}" ScaleY="{Binding RectificationSourcePreviewZoom}" />
-                                                </LayoutTransformControl.LayoutTransform>
-                                                <ItemsControl ItemsSource="{Binding SourcePreviewShapes}" Width="320" Height="320">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <Canvas Width="320" Height="320" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
-                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </LayoutTransformControl>
-                                        </ScrollViewer>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328" ClipToBounds="True">
+                                        <Grid x:Name="RectificationSourcePreviewViewport"
+                                              Background="Transparent"
+                                              PointerPressed="RectificationSourcePreview_PointerPressed"
+                                              PointerMoved="RectificationSourcePreview_PointerMoved"
+                                              PointerReleased="RectificationSourcePreview_PointerReleased"
+                                              PointerCaptureLost="PreviewViewport_PointerCaptureLost"
+                                              PointerWheelChanged="RectificationSourcePreview_PointerWheelChanged">
+                                            <ItemsControl ItemsSource="{Binding RectificationSourcePreviewShapes}" Width="{Binding RectificationSourcePreviewCanvasSize}" Height="{Binding RectificationSourcePreviewCanvasSize}" IsHitTestVisible="False">
+                                                <ItemsControl.RenderTransform>
+                                                    <TranslateTransform X="{Binding RectificationSourcePreviewOffsetX}" Y="{Binding RectificationSourcePreviewOffsetY}" />
+                                                </ItemsControl.RenderTransform>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                        <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
                                     </Border>
                                 </Grid>
 
@@ -302,30 +314,34 @@
                                 <Grid RowDefinitions="Auto,*" RowSpacing="8">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
                                         <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
-                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding RectificationTargetPreviewZoom}" TickFrequency="0.25" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="8" Value="{Binding RectificationTargetPreviewZoom}" TickFrequency="0.25" />
                                         <TextBlock Grid.Column="2" Text="{Binding RectificationTargetPreviewZoomDisplay}" VerticalAlignment="Center" />
                                         <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetRectificationTargetPreviewZoom_Click" />
                                     </Grid>
-                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <LayoutTransformControl>
-                                                <LayoutTransformControl.LayoutTransform>
-                                                    <ScaleTransform ScaleX="{Binding RectificationTargetPreviewZoom}" ScaleY="{Binding RectificationTargetPreviewZoom}" />
-                                                </LayoutTransformControl.LayoutTransform>
-                                                <ItemsControl ItemsSource="{Binding RectificationTargetPreviewShapes}" Width="320" Height="320">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <Canvas Width="320" Height="320" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
-                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </LayoutTransformControl>
-                                        </ScrollViewer>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328" ClipToBounds="True">
+                                        <Grid x:Name="RectificationTargetPreviewViewport"
+                                              Background="Transparent"
+                                              PointerPressed="RectificationTargetPreview_PointerPressed"
+                                              PointerMoved="RectificationTargetPreview_PointerMoved"
+                                              PointerReleased="RectificationTargetPreview_PointerReleased"
+                                              PointerCaptureLost="PreviewViewport_PointerCaptureLost"
+                                              PointerWheelChanged="RectificationTargetPreview_PointerWheelChanged">
+                                            <ItemsControl ItemsSource="{Binding RectificationTargetPreviewShapes}" Width="{Binding RectificationTargetPreviewCanvasSize}" Height="{Binding RectificationTargetPreviewCanvasSize}" IsHitTestVisible="False">
+                                                <ItemsControl.RenderTransform>
+                                                    <TranslateTransform X="{Binding RectificationTargetPreviewOffsetX}" Y="{Binding RectificationTargetPreviewOffsetY}" />
+                                                </ItemsControl.RenderTransform>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                        <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
                                     </Border>
                                 </Grid>
 
