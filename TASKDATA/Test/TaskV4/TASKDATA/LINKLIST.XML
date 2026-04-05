@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ISO11783LinkList VersionMajor="4" VersionMinor="3" ManagementSoftwareManufacturer="AGCO GmbH" ManagementSoftwareVersion="1.1.1116" TaskControllerManufacturer="AGCO GmbH" TaskControllerVersion="3" DataTransferOrigin="2">
+	<LGP A="LGP-1" B="1">
+		<LNK A="DVC-4" B="{6cf95045-b972-41c7-8be5-bcfd9c249716}"/>
+		<LNK A="VPN-2" B="{22805f7e-75e3-40e8-aac0-d6a8c9090409}"/>
+		<LNK A="VPN-1" B="{fbead3d5-8909-415d-9e9a-0b538ca2bd2a}"/>
+		<LNK A="VPN-4" B="{675f2caa-c230-4aad-aa59-63d44998d13a}"/>
+		<LNK A="VPN-3" B="{0aa18671-f98e-470b-aa81-eb62c5587c26}"/>
+		<LNK A="DET-6" B="{d26c094b-710d-46e2-a9b0-38a7d26c5b01}"/>
+		<LNK A="DET-5" B="{e6fdf3fd-fed4-4343-a383-ef74455bf30e}"/>
+		<LNK A="VPN-6" B="{3dfe1355-1b2c-4f4f-a545-7eeb83337719}"/>
+		<LNK A="VPN-5" B="{b699ca83-bd25-4365-a9ac-20bc764c1569}"/>
+		<LNK A="DET-21" B="{c9b6a4d9-7774-4497-ab59-fd99cf0ea0e8}"/>
+		<LNK A="DET-20" B="{224f1e9a-1341-4d6a-b7d9-6bd0d3885f1d}"/>
+		<LNK A="DET-26" B="{3539c7f0-9895-4f87-9371-01170f41f754}"/>
+		<LNK A="DET-8" B="{70e0d33b-997c-4011-b853-14a1aa833371}"/>
+		<LNK A="DET-7" B="{45b48987-5179-4040-bb2e-2d694d8e6091}"/>
+		<LNK A="DET-19" B="{6e914ecf-9a92-4657-89b7-ec7153886cef}"/>
+		<LNK A="DET-18" B="{43119cde-0322-4387-87e4-57e028c12eb3}"/>
+		<LNK A="FRM29" B="{b9014318-ddcb-4aec-9faf-e1ade9ef2877}"/>
+		<LNK A="GGP-225" B="{7f8fba28-e8fb-4dd9-b25c-8fe1ff366df6}"/>
+		<LNK A="GPN-225" B="{8a39bf44-21ac-4eeb-a4dd-aea347304e41}"/>
+		<LNK A="GGP-127" B="{0442b24f-a3e5-4f0f-9f96-8c8927f03561}"/>
+		<LNK A="GPN-127" B="{2b133f4e-8a67-46cf-a0a9-9c789f437a99}"/>
+		<LNK A="TSK-1" B="{9a3f5043-df32-49bd-bdbd-7e47ae29712d}"/>
+		<LNK A="CTR58" B="{8415f1e6-6c0f-4d28-b245-bf046eaf509e}"/>
+		<LNK A="PFD37" B="{470e7b4c-f11b-4466-992b-9977d33c29b3}"/>
+	</LGP>
+</ISO11783LinkList>

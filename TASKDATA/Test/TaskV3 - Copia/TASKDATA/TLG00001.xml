@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TIM A="" D="4">
+	<PTN A="" B="" C="" D=""/>
+	<DLV A="005B" B="" C="DET-6"/>
+	<DLV A="0074" B="" C="DET-6"/>
+	<DLV A="0075" B="" C="DET-6"/>
+	<DLV A="0076" B="" C="DET-6"/>
+	<DLV A="0077" B="" C="DET-6"/>
+	<DLV A="0078" B="" C="DET-6"/>
+	<DLV A="013C" B="" C="DET-6"/>
+	<DLV A="013D" B="" C="DET-6"/>
+	<DLV A="013E" B="" C="DET-6"/>
+	<DLV A="013F" B="" C="DET-6"/>
+	<DLV A="0043" B="" C="DET-6"/>
+	<DLV A="008D" B="" C="DET-6"/>
+	<DLV A="DFFE" B="" C="DET-5" D="65096" E="0" F="15"/>
+	<DLV A="DFFE" B="" C="DET-5" D="65097" E="0" F="15"/>
+	<DLV A="DFFE" B="" C="DET-5" D="61444" E="24" F="39"/>
+	<DLV A="DFFE" B="" C="DET-5" D="65093" E="0" F="7"/>
+	<DLV A="DFFE" B="" C="DET-5" D="65093" E="24" F="39"/>
+	<DLV A="DFFE" B="" C="DET-5" D="65094" E="0" F="7"/>
+	<DLV A="DFFE" B="" C="DET-5" D="61474" E="58" F="60"/>
+	<DLV A="0095" B="" C="DET-6"/>
+	<DLV A="0096" B="" C="DET-6"/>
+	<DLV A="00C0" B="" C="DET-6"/>
+	<DLV A="DFFE" B="" C="DET-5" D="65255" E="0" F="31"/>
+</TIM>

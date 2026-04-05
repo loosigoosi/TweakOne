@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ISO11783_TaskData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ISO11783_TaskFile_V4-3.xsd" VersionMajor="4" VersionMinor="3" ManagementSoftwareManufacturer="AGCO GmbH" ManagementSoftwareVersion="1.1.1116" TaskControllerManufacturer="AGCO GmbH" TaskControllerVersion="3" DataTransferOrigin="2" lang="en">
+	<TCC A="A00082000CC00000" B="AGCO GmbH" C="3" D="3" E="0" F="0" G="0"/>
+	<TSK A="TSK-1" B="AddGuideline" E="PFD37" G="4">
+		<DLT A="DFFF" B="31"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-1" J="61444" K="24" L="39"/>
+		<DLT A="DFFE" B="2" C="5000" J="61474" K="58" L="60"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-1" J="65091" K="0" L="15"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-1" J="65092" K="0" L="15"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-2" J="65093" K="0" L="7"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-3" J="65093" K="24" L="39"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-2" J="65094" K="0" L="7"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-4" J="65096" K="0" L="15"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-4" J="65097" K="0" L="15"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-5" J="65255" K="0" L="31"/>
+		<DLT A="DFFE" B="2" C="5000" I="VPN-6" J="65268" K="8" L="15"/>
+		<DAN A="A00086000CC0356F" C="DVC-4">
+			<ASP A="2026-04-05T20:24:04+02:00" D="1"/>
+		</DAN>
+		<DAN A="A00086000CC0356F" C="DVC-4">
+			<ASP A="2026-04-05T20:24:04+02:00" B="2026-04-05T20:24:04+02:00" C="0" D="4"/>
+		</DAN>
+		<DAN A="A00086000CC0356F" C="DVC-4">
+			<ASP A="2026-04-05T20:25:37+02:00" B="2026-04-05T20:28:19+02:00" C="161" D="4"/>
+		</DAN>
+		<TIM A="2026-04-05T20:24:04+02:00" B="2026-04-05T20:28:18+02:00" C="254" D="4">
+			<PTN A="44.901966182" B="7.591865185" C="291309" D="4"/>
+			<DLV A="005B" B="0" C="DET-6"/>
+			<DLV A="0074" B="0" C="DET-6"/>
+			<DLV A="0075" B="0" C="DET-6"/>
+			<DLV A="0076" B="56011" C="DET-6"/>
+			<DLV A="0077" B="0" C="DET-6"/>
+			<DLV A="0078" B="160" C="DET-6"/>
+			<DLV A="013C" B="0" C="DET-6"/>
+			<DLV A="013D" B="189" C="DET-6"/>
+			<DLV A="013E" B="0" C="DET-6"/>
+			<DLV A="013F" B="0" C="DET-6"/>
+		</TIM>
+		<TLG A="TLG00001" C="1"/>
+	</TSK>
+	<DVC A="DVC-4" B="Fendt Vario Tractor" C="EX9_.0B____.F.15.250.00.______" D="A00086000CC0356F" E="WAM76321C00F02821" F="30323430393036" G="FF000004406E65">
+		<DET A="DET-6" B="2" C="2" D="Board Computer" E="1" F="1">
+			<DOR A="10201"/>
+			<DOR A="10202"/>
+			<DOR A="10203"/>
+			<DOR A="10204"/>
+			<DOR A="10205"/>
+			<DOR A="10206"/>
+			<DOR A="10207"/>
+			<DOR A="10209"/>
+			<DOR A="10210"/>
+			<DOR A="10211"/>
+			<DOR A="10212"/>
+			<DOR A="10213"/>
+			<DOR A="10214"/>
+			<DOR A="10215"/>
+			<DOR A="10216"/>
+		</DET>
+		<DET A="DET-7" B="3" C="7" D="GNSS Sensor" E="2" F="1">
+			<DOR A="20301"/>
+			<DOR A="20302"/>
+			<DOR A="20303"/>
+		</DET>
+		<DET A="DET-8" B="4" C="6" D="Rear Hitch" E="3" F="1">
+			<DOR A="20401"/>
+			<DOR A="20402"/>
+			<DOR A="20403"/>
+			<DOR A="20404"/>
+		</DET>
+		<DET A="DET-18" B="5" C="6" D="Front Hitch" E="4" F="1">
+			<DOR A="20501"/>
+			<DOR A="20502"/>
+			<DOR A="20503"/>
+			<DOR A="20504"/>
+		</DET>
+		<DET A="DET-19" B="6" C="6" D="Clevis Hitch" E="5" F="1">
+			<DOR A="20601"/>
+			<DOR A="20602"/>
+			<DOR A="20603"/>
+			<DOR A="20604"/>
+		</DET>
+		<DET A="DET-20" B="7" C="6" D="Rear Drawbar" E="6" F="1">
+			<DOR A="20701"/>
+			<DOR A="20702"/>
+			<DOR A="20703"/>
+			<DOR A="20704"/>
+		</DET>
+		<DET A="DET-21" B="8" C="6" D="Rear Semi Hitch" E="7" F="1">
+			<DOR A="20801"/>
+			<DOR A="20802"/>
+			<DOR A="20803"/>
+			<DOR A="20804"/>
+		</DET>
+		<DET A="DET-26" B="9" C="6" D="Rear Ball Hitch " E="8" F="1">
+			<DOR A="20901"/>
+			<DOR A="20902"/>
+			<DOR A="20903"/>
+			<DOR A="20904"/>
+		</DET>
+		<DET A="DET-5" B="1" C="1" D="Tractor" E="0" F="0">
+			<DOR A="10101"/>
+			<DOR A="20101"/>
+			<DOR A="20102"/>
+			<DOR A="20103"/>
+			<DOR A="20104"/>
+		</DET>
+		<DPD A="10210" B="0096" C="1" D="3" E="Actual Fuel Consumption per Area" F="30007"/>
+		<DPD A="10212" B="00C0" C="1" D="11" E="Outdoor Temperature" F="30008"/>
+		<DPD A="10215" B="013C" C="2" D="17" E="Effective Total Fuel Consumption" F="30005"/>
+		<DPD A="10216" B="013D" C="2" D="17" E="Ineffective Total Fuel Fluid Con" F="30005"/>
+		<DPD A="10213" B="013E" C="2" D="17" E="Effective Total Diesel Exhaust F" F="30005"/>
+		<DPD A="10214" B="013F" C="2" D="17" E="Ineffective Total Diesel Exhaust" F="30005"/>
+		<DPD A="10101" B="DFFF" C="0" D="31" E="Use Default Set"/>
+		<DPD A="10201" B="0043" C="1" D="11" E="Actual Working Width" F="30001"/>
+		<DPD A="10202" B="005B" C="2" D="17" E="Yield/Pulse Counter"/>
+		<DPD A="10203" B="0074" C="2" D="17" E="Total Worked Area" F="30002"/>
+		<DPD A="10204" B="0075" C="2" D="17" E="Total Distance (Working)" F="30003"/>
+		<DPD A="10205" B="0076" C="2" D="17" E="Total Distance (not Working)" F="30003"/>
+		<DPD A="10206" B="0077" C="2" D="17" E="Total Time (Working)" F="30004"/>
+		<DPD A="10207" B="0078" C="2" D="17" E="Total Time (not Working)" F="30004"/>
+		<DPD A="10211" B="008D" C="1" D="11" E="Work State"/>
+		<DPD A="10209" B="0095" C="1" D="3" E="Actual Fuel Consumption per Time" F="30006"/>
+		<DPT A="20101" B="009A" C="5123" D="Vehicle Length" E="30001"/>
+		<DPT A="20102" B="009B" C="2660" D="Vehicle Width" E="30001"/>
+		<DPT A="20103" B="009C" C="3070" D="Vehicle Height" E="30001"/>
+		<DPT A="20104" B="00B4" C="980" D="DRP to Ground" E="30001"/>
+		<DPT A="20301" B="0086" C="0" D="NRP GNSS Reported Position X" E="30001"/>
+		<DPT A="20302" B="0087" C="0" D="NRP GNSS Reported Position Y" E="30001"/>
+		<DPT A="20303" B="0088" C="0" D="NRP GNSS Reported Position Z" E="30001"/>
+		<DPT A="20401" B="009D" C="3" D="Rear Three-Point-Hitch Mounted"/>
+		<DPT A="20402" B="0086" C="-1288" D="CRP Rear Hitch X" E="30001"/>
+		<DPT A="20403" B="0087" C="0" D="CRP Rear Hitch Y" E="30001"/>
+		<DPT A="20404" B="0088" C="276" D="CRP Rear Hitch Z" E="30001"/>
+		<DPT A="20501" B="009D" C="3" D="Front Three-Point-Hitch Mounted"/>
+		<DPT A="20502" B="0086" C="3900" D="CRP Front Hitch X" E="30001"/>
+		<DPT A="20503" B="0087" C="0" D="CRP Front Hitch Y" E="30001"/>
+		<DPT A="20504" B="0088" C="300" D="CRP Front Hitch Z" E="30001"/>
+		<DPT A="20601" B="009D" C="5" D="Clevis Coupling 40"/>
+		<DPT A="20602" B="0086" C="-817" D="CRP Rear Trail Point X" E="30001"/>
+		<DPT A="20603" B="0087" C="0" D="CRP Rear Trail Point Y" E="30001"/>
+		<DPT A="20604" B="0088" C="0" D="CRP Rear Trail Point Z" E="30001"/>
+		<DPT A="20701" B="009D" C="1" D="Drawbar"/>
+		<DPT A="20702" B="0086" C="-863" D="CRP Rear Drawbar X" E="30001"/>
+		<DPT A="20703" B="0087" C="0" D="CRP Rear Drawbar Y" E="30001"/>
+		<DPT A="20704" B="0088" C="376" D="CRP Rear Drawbar Z" E="30001"/>
+		<DPT A="20801" B="009D" C="2" D="Rear Three-Point-Hitch Semi-Moun"/>
+		<DPT A="20802" B="0086" C="-1288" D="CRP Rear Hitch Semi Mounted X" E="30001"/>
+		<DPT A="20803" B="0087" C="0" D="CRP Rear Hitch Semi Mounted Y" E="30001"/>
+		<DPT A="20804" B="0088" C="276" D="CRP Rear Hitch Semi Mounted Z" E="30001"/>
+		<DPT A="20901" B="009D" C="8" D="Ball Type Hitch"/>
+		<DPT A="20902" B="0086" C="-745" D="CRP Rear Ball Type Hitch X" E="30001"/>
+		<DPT A="20903" B="0087" C="0" D="CRP Rear Ball Type Hitch Y" E="30001"/>
+		<DPT A="20904" B="0088" C="328" D="CRP Rear Ball Type Hitch Z" E="30001"/>
+		<DVP A="30002" B="0" C="0.0001" D="4" E="ha"/>
+		<DVP A="30003" B="0" C="0.000001" D="3" E="km"/>
+		<DVP A="30004" B="0" C="0.000277778" D="2" E="h"/>
+		<DVP A="30005" B="0" C="0.001" D="1" E="l"/>
+		<DVP A="30006" B="0" C="0.0036" D="2" E="l/h"/>
+		<DVP A="30007" B="0" C="0.01" D="2" E="l/ha"/>
+		<DVP A="30008" B="-273150" C="0.001" D="2" E="°C"/>
+		<DVP A="30009" B="0" C="1" D="0" E="m"/>
+		<DVP A="30001" B="0" C="1" D="0" E="mm"/>
+	</DVC>
+	<PFD A="PFD37" C="Cascina Vallina" D="0" E="CTR58" F="FRM29">
+		<GGP A="GGP-225" B="TestGuidelineAB">
+			<GPN A="GPN-225" B="TestGuidelineAB" C="1">
+				<LSG A="5">
+					<PNT A="6" C="44.90181182" D="7.59224625" E="292487"/>
+					<PNT A="7" C="44.90169416" D="7.59223146" E="292371"/>
+				</LSG>
+			</GPN>
+		</GGP>
+		<GGP A="GGP-127" B="AB Strada Vallina (Input man.)">
+			<GPN A="GPN-127" C="1">
+				<LSG A="5">
+					<PNT A="6" C="44.90341239" D="7.5910297" E="289831"/>
+					<PNT A="7" C="44.90592919" D="7.58996969" E="289831"/>
+				</LSG>
+			</GPN>
+		</GGP>
+	</PFD>
+	<VPN A="VPN-1" B="0" C="0.125" D="0" E="1/min"/>
+	<VPN A="VPN-2" B="0" C="0.4" D="1" E="%"/>
+	<VPN A="VPN-3" B="-32000" C="10" D="0" E="N"/>
+	<VPN A="VPN-4" B="0" C="0.0036" D="2" E="km/h"/>
+	<VPN A="VPN-5" B="0" C="0.05" D="2" E="h"/>
+	<VPN A="VPN-6" B="0" C="0.04" D="2" E="bar"/>
+	<CTR A="CTR58" B="Ronco" C="Flavio"/>
+	<FRM A="FRM29" B="La Vallina"/>
+	<AFE A="LINKLIST.XML" B="1" C="" D="1"/>
+	<AFE A="AGCOPROP.JSN" B="1" C="http://www.agcocorp.com" D="128"/>
+</ISO11783_TaskData>
