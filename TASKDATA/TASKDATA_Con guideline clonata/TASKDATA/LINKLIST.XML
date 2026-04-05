@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><ISO11783LinkList DataTransferOrigin="1" ManagementSoftwareManufacturer="AGCO GmbH" ManagementSoftwareVersion="1.0.41" VersionMajor="4" VersionMinor="3">
+  <LGP A="LGP-1" B="1">
+    <LNK A="CTR60" B="{d0ff0a78-c52e-43e9-abb5-081a057d763b}"/>
+    <LNK A="FRM68" B="{6ec3ee05-7eb5-4c67-8d83-609f3c5c07b2}"/>
+    <LNK A="PFD2" B="{3cd78eba-4dda-4a58-8467-11f68ff485ed}"/>
+  </LGP>
+</ISO11783LinkList>

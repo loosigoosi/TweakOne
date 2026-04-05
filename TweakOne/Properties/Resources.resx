@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WindowTitle" xml:space="preserve"><value>TweakOne - ISOXML v3 Guidance Clone</value></data>
+  <data name="CloneTabHeader" xml:space="preserve"><value>Clone</value></data>
+  <data name="RectificationTabHeader" xml:space="preserve"><value>Rectification</value></data>
+  <data name="OpenSourcePackageButton" xml:space="preserve"><value>Open source package...</value></data>
+  <data name="NoSourceFileLoaded" xml:space="preserve"><value>No source file loaded</value></data>
+  <data name="OpenTargetPackageButton" xml:space="preserve"><value>Open target package...</value></data>
+  <data name="SaveTargetPackageButton" xml:space="preserve"><value>Save target package...</value></data>
+  <data name="NoTargetFileLoaded" xml:space="preserve"><value>No target file loaded</value></data>
+  <data name="SourceFieldHeader" xml:space="preserve"><value>Source field</value></data>
+  <data name="TargetFieldHeader" xml:space="preserve"><value>Target field</value></data>
+  <data name="SelectSourceField" xml:space="preserve"><value>Select a source field</value></data>
+  <data name="SelectTargetField" xml:space="preserve"><value>Select a target field</value></data>
+  <data name="GuidanceLinesHeader" xml:space="preserve"><value>Guidance lines</value></data>
+  <data name="TargetGuidanceLinesHeader" xml:space="preserve"><value>Target guidance lines</value></data>
+  <data name="PreviewZoomLabel" xml:space="preserve"><value>Zoom</value></data>
+  <data name="PreviewResetZoomButton" xml:space="preserve"><value>Reset</value></data>
+  <data name="PreviewPanHint" xml:space="preserve"><value>Use the scrollbars or mouse wheel to pan the field preview.</value></data>
+  <data name="SourceGuidanceHint" xml:space="preserve"><value>Selecting a source guidance line highlights it in orange.</value></data>
+  <data name="TargetGuidanceHint" xml:space="preserve"><value>The newest or selected target line is highlighted in orange.</value></data>
+  <data name="CloneControlsHeader" xml:space="preserve"><value>Clone controls</value></data>
+  <data name="CloneDesignatorLabel" xml:space="preserve"><value>Clone designator</value></data>
+  <data name="CloneDesignatorWatermark" xml:space="preserve"><value>AB clone</value></data>
+  <data name="TranslationOffsetMetersLabel" xml:space="preserve"><value>Translation offset (meters)</value></data>
+  <data name="CloneAsIsButton" xml:space="preserve"><value>Clone as-is</value></data>
+  <data name="CloneWithAutoTranslationButton" xml:space="preserve"><value>Clone with auto translation</value></data>
+  <data name="DeleteSelectedTargetGuidanceButton" xml:space="preserve"><value>Delete selected target line</value></data>
+  <data name="AutoTranslationDescription" xml:space="preserve"><value>Automatic translation keeps the A-B direction, chooses the side that best fits the target field, and can slide two-point AB markers along the line when needed.</value></data>
+  <data name="RectificationControlsHeader" xml:space="preserve"><value>Rectification controls</value></data>
+  <data name="RectificationDesignatorLabel" xml:space="preserve"><value>Rectified line designator</value></data>
+  <data name="RectificationDesignatorWatermark" xml:space="preserve"><value>Rectified AB</value></data>
+  <data name="RectificationOffsetMetersLabel" xml:space="preserve"><value>Desired offset (meters)</value></data>
+  <data name="RectificationRowCountLabel" xml:space="preserve"><value>Number of rows</value></data>
+  <data name="RectificationApplicationOffsetMetersLabel" xml:space="preserve"><value>Applied offset (meters)</value></data>
+  <data name="RectificationToleranceMetersLabel" xml:space="preserve"><value>Tolerance (meters)</value></data>
+  <data name="AnalyzeRectificationButton" xml:space="preserve"><value>Analyze rectification</value></data>
+  <data name="ApplyRectifiedGuidanceButton" xml:space="preserve"><value>Apply rectified lines</value></data>
+  <data name="RectificationResultHeader" xml:space="preserve"><value>Rectification result</value></data>
+  <data name="RectificationResultNotAnalyzed" xml:space="preserve"><value>No rectification analyzed yet.</value></data>
+  <data name="RectificationDescription" xml:space="preserve"><value>Fits a straight regression line to the selected guideline, offsets it, validates the offset against the source curve tolerance, and snaps the result to the target field boundaries.</value></data>
+  <data name="RectificationPreviewHint" xml:space="preserve"><value>The rectified candidate is previewed in green before it is applied to the target field.</value></data>
+  <data name="StatusInitial" xml:space="preserve"><value>Load source and target ISOXML v3 packages to begin.</value></data>
+  <data name="SaveTargetBeforeLoadingError" xml:space="preserve"><value>Load a target package before saving.</value></data>
+  <data name="SaveTargetPackagePickerTitle" xml:space="preserve"><value>Save target ISOXML package</value></data>
+  <data name="OpenSourcePackagePickerTitle" xml:space="preserve"><value>Open source ISOXML package</value></data>
+  <data name="OpenTargetPackagePickerTitle" xml:space="preserve"><value>Open target ISOXML package</value></data>
+  <data name="IsoXmlPackageFileType" xml:space="preserve"><value>ISOXML package</value></data>
+  <data name="DefaultTargetPackageFileName" xml:space="preserve"><value>TASKDATA.zip</value></data>
+  <data name="StatusLoadedSourcePackage" xml:space="preserve"><value>Loaded source package: {0}</value></data>
+  <data name="StatusLoadedTargetPackage" xml:space="preserve"><value>Loaded target package: {0}</value></data>
+  <data name="StatusSavedTargetPackage" xml:space="preserve"><value>Saved target package: {0}</value></data>
+  <data name="SelectSourceGuidanceLineError" xml:space="preserve"><value>Select a source guidance line.</value></data>
+  <data name="SelectTargetFieldError" xml:space="preserve"><value>Select a target field.</value></data>
+  <data name="SelectTargetGuidanceLineError" xml:space="preserve"><value>Select a target guidance line.</value></data>
+  <data name="RectificationOffsetPositiveError" xml:space="preserve"><value>The desired offset must be greater than zero.</value></data>
+  <data name="RectificationTolerancePositiveError" xml:space="preserve"><value>The tolerance must be zero or greater.</value></data>
+  <data name="StatusClonedGuidanceLine" xml:space="preserve"><value>Cloned guidance line '{0}' into target field '{1}'.</value></data>
+  <data name="StatusClonedAndTranslatedGuidanceLine" xml:space="preserve"><value>Cloned and translated guidance line '{0}' by {1:0.##} m into target field '{2}'.</value></data>
+  <data name="StatusDeletedTargetGuidanceLine" xml:space="preserve"><value>Deleted target guidance line '{0}' from field '{1}'.</value></data>
+  <data name="StatusAppliedRectifiedGuidanceLines" xml:space="preserve"><value>Applied {0} rectified guidance lines to target field '{1}'.</value></data>
+  <data name="UnnamedField" xml:space="preserve"><value>Unnamed field</value></data>
+  <data name="PartfieldSummaryFormat" xml:space="preserve"><value>Area: {0} m² | Guidance lines: {1}</value></data>
+  <data name="GuidancePathDefaultName" xml:space="preserve"><value>Guidance path</value></data>
+  <data name="GuidancePathNoPoints" xml:space="preserve"><value>No points</value></data>
+  <data name="GuidancePathSummaryFormat" xml:space="preserve"><value>{0} points | A ({1:0.000000}, {2:0.000000}) -&gt; B ({3:0.000000}, {4:0.000000})</value></data>
+  <data name="GuidancePathCopyFormat" xml:space="preserve"><value>{0} copy</value></data>
+  <data name="RectifiedGuidancePathFormat" xml:space="preserve"><value>{0} rectified</value></data>
+  <data name="RectifiedPositiveGuidancePathFormat" xml:space="preserve"><value>{0} rectified (+)</value></data>
+  <data name="RectifiedNegativeGuidancePathFormat" xml:space="preserve"><value>{0} rectified (-)</value></data>
+  <data name="PositiveDirectionLabel" xml:space="preserve"><value>Positive side</value></data>
+  <data name="NegativeDirectionLabel" xml:space="preserve"><value>Negative side</value></data>
+  <data name="RectificationCandidateSummaryFormat" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="RectificationAcceptedSummaryFormat" xml:space="preserve"><value>Accepted. Distance range {0:0.00} m to {1:0.00} m, target offset {2:0.00} m, tolerance +/- {3:0.00} m, max deviation {4:0.00} m.</value></data>
+  <data name="RectificationRejectedSummaryFormat" xml:space="preserve"><value>Rejected. Distance range {0:0.00} m to {1:0.00} m, target offset {2:0.00} m, tolerance +/- {3:0.00} m, max deviation {4:0.00} m.</value></data>
+  <data name="PackageNotFound" xml:space="preserve"><value>Package '{0}' was not found.</value></data>
+  <data name="PackageMissingTaskDataXml" xml:space="preserve"><value>Package '{0}' does not contain TASKDATA/TASKDATA.XML.</value></data>
+  <data name="PackageInvalidTaskDataPath" xml:space="preserve"><value>Package '{0}' contains an invalid TASKDATA path.</value></data>
+  <data name="GuidanceNeedsAtLeastTwoPointsError" xml:space="preserve"><value>A guidance path needs at least two points to be translated.</value></data>
+  <data name="OnlyGuidancePathTypeError" xml:space="preserve"><value>Only line strings of type {0} can be copied as guidance paths.</value></data>
+  <data name="TranslationNotSupportedAtPolesError" xml:space="preserve"><value>Guidance path translation is not supported at the poles.</value></data>
+  <data name="TranslationRequiresDistinctPointsError" xml:space="preserve"><value>Guidance path translation requires distinct start and end points.</value></data>
+</root>

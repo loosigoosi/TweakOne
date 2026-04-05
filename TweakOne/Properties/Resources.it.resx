@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WindowTitle" xml:space="preserve"><value>TweakOne - Clonazione linee guida ISOXML v3</value></data>
+  <data name="CloneTabHeader" xml:space="preserve"><value>Clonazione</value></data>
+  <data name="RectificationTabHeader" xml:space="preserve"><value>Rettifica</value></data>
+  <data name="OpenSourcePackageButton" xml:space="preserve"><value>Apri pacchetto sorgente...</value></data>
+  <data name="NoSourceFileLoaded" xml:space="preserve"><value>Nessun file sorgente caricato</value></data>
+  <data name="OpenTargetPackageButton" xml:space="preserve"><value>Apri pacchetto target...</value></data>
+  <data name="SaveTargetPackageButton" xml:space="preserve"><value>Salva pacchetto target...</value></data>
+  <data name="NoTargetFileLoaded" xml:space="preserve"><value>Nessun file target caricato</value></data>
+  <data name="SourceFieldHeader" xml:space="preserve"><value>Campo sorgente</value></data>
+  <data name="TargetFieldHeader" xml:space="preserve"><value>Campo target</value></data>
+  <data name="SelectSourceField" xml:space="preserve"><value>Seleziona un campo sorgente</value></data>
+  <data name="SelectTargetField" xml:space="preserve"><value>Seleziona un campo target</value></data>
+  <data name="GuidanceLinesHeader" xml:space="preserve"><value>Linee guida</value></data>
+  <data name="TargetGuidanceLinesHeader" xml:space="preserve"><value>Linee guida target</value></data>
+  <data name="PreviewZoomLabel" xml:space="preserve"><value>Zoom</value></data>
+  <data name="PreviewResetZoomButton" xml:space="preserve"><value>Reset</value></data>
+  <data name="PreviewPanHint" xml:space="preserve"><value>Usa le scrollbar o la rotella del mouse per spostarti nell'anteprima del campo.</value></data>
+  <data name="SourceGuidanceHint" xml:space="preserve"><value>Selezionando una linea guida sorgente la evidenzi in arancione.</value></data>
+  <data name="TargetGuidanceHint" xml:space="preserve"><value>La linea target più recente o selezionata viene evidenziata in arancione.</value></data>
+  <data name="CloneControlsHeader" xml:space="preserve"><value>Controlli di clonazione</value></data>
+  <data name="CloneDesignatorLabel" xml:space="preserve"><value>Nome clone</value></data>
+  <data name="CloneDesignatorWatermark" xml:space="preserve"><value>Clone AB</value></data>
+  <data name="TranslationOffsetMetersLabel" xml:space="preserve"><value>Offset di traslazione (metri)</value></data>
+  <data name="CloneAsIsButton" xml:space="preserve"><value>Clona senza modifiche</value></data>
+  <data name="CloneWithAutoTranslationButton" xml:space="preserve"><value>Clona con traslazione automatica</value></data>
+  <data name="DeleteSelectedTargetGuidanceButton" xml:space="preserve"><value>Elimina linea target selezionata</value></data>
+  <data name="AutoTranslationDescription" xml:space="preserve"><value>La traslazione automatica mantiene la direzione A-B, sceglie il lato più adatto al campo target e, se necessario, fa scorrere lungo la retta i marcatori AB a due punti.</value></data>
+  <data name="RectificationControlsHeader" xml:space="preserve"><value>Controlli di rettifica</value></data>
+  <data name="RectificationDesignatorLabel" xml:space="preserve"><value>Nome linea rettificata</value></data>
+  <data name="RectificationDesignatorWatermark" xml:space="preserve"><value>AB rettificata</value></data>
+  <data name="RectificationOffsetMetersLabel" xml:space="preserve"><value>Offset desiderato (metri)</value></data>
+  <data name="RectificationRowCountLabel" xml:space="preserve"><value>Numero file</value></data>
+  <data name="RectificationApplicationOffsetMetersLabel" xml:space="preserve"><value>Offset applicato (metri)</value></data>
+  <data name="RectificationToleranceMetersLabel" xml:space="preserve"><value>Tolleranza (metri)</value></data>
+  <data name="AnalyzeRectificationButton" xml:space="preserve"><value>Analizza rettifica</value></data>
+  <data name="ApplyRectifiedGuidanceButton" xml:space="preserve"><value>Applica linee rettificate</value></data>
+  <data name="RectificationResultHeader" xml:space="preserve"><value>Esito rettifica</value></data>
+  <data name="RectificationResultNotAnalyzed" xml:space="preserve"><value>Nessuna rettifica analizzata.</value></data>
+  <data name="RectificationDescription" xml:space="preserve"><value>Calcola una retta di regressione sulla guideline selezionata, la trasla, verifica il rispetto della tolleranza rispetto alla curva sorgente e la aggancia ai confini del campo target.</value></data>
+  <data name="RectificationPreviewHint" xml:space="preserve"><value>La candidata rettificata viene mostrata in verde prima di essere applicata al campo target.</value></data>
+  <data name="StatusInitial" xml:space="preserve"><value>Carica i pacchetti ISOXML v3 sorgente e target per iniziare.</value></data>
+  <data name="SaveTargetBeforeLoadingError" xml:space="preserve"><value>Carica un pacchetto target prima di salvare.</value></data>
+  <data name="SaveTargetPackagePickerTitle" xml:space="preserve"><value>Salva pacchetto ISOXML target</value></data>
+  <data name="OpenSourcePackagePickerTitle" xml:space="preserve"><value>Apri pacchetto ISOXML sorgente</value></data>
+  <data name="OpenTargetPackagePickerTitle" xml:space="preserve"><value>Apri pacchetto ISOXML target</value></data>
+  <data name="IsoXmlPackageFileType" xml:space="preserve"><value>Pacchetto ISOXML</value></data>
+  <data name="DefaultTargetPackageFileName" xml:space="preserve"><value>TASKDATA.zip</value></data>
+  <data name="StatusLoadedSourcePackage" xml:space="preserve"><value>Pacchetto sorgente caricato: {0}</value></data>
+  <data name="StatusLoadedTargetPackage" xml:space="preserve"><value>Pacchetto target caricato: {0}</value></data>
+  <data name="StatusSavedTargetPackage" xml:space="preserve"><value>Pacchetto target salvato: {0}</value></data>
+  <data name="SelectSourceGuidanceLineError" xml:space="preserve"><value>Seleziona una linea guida sorgente.</value></data>
+  <data name="SelectTargetFieldError" xml:space="preserve"><value>Seleziona un campo target.</value></data>
+  <data name="SelectTargetGuidanceLineError" xml:space="preserve"><value>Seleziona una linea guida target.</value></data>
+  <data name="RectificationOffsetPositiveError" xml:space="preserve"><value>L'offset desiderato deve essere maggiore di zero.</value></data>
+  <data name="RectificationTolerancePositiveError" xml:space="preserve"><value>La tolleranza deve essere maggiore o uguale a zero.</value></data>
+  <data name="StatusClonedGuidanceLine" xml:space="preserve"><value>Linea guida '{0}' clonata nel campo target '{1}'.</value></data>
+  <data name="StatusClonedAndTranslatedGuidanceLine" xml:space="preserve"><value>Linea guida '{0}' clonata e traslata di {1:0.##} m nel campo target '{2}'.</value></data>
+  <data name="StatusDeletedTargetGuidanceLine" xml:space="preserve"><value>Linea guida target '{0}' eliminata dal campo '{1}'.</value></data>
+  <data name="StatusAppliedRectifiedGuidanceLines" xml:space="preserve"><value>Applicate {0} linee guida rettificate al campo target '{1}'.</value></data>
+  <data name="UnnamedField" xml:space="preserve"><value>Campo senza nome</value></data>
+  <data name="PartfieldSummaryFormat" xml:space="preserve"><value>Area: {0} m² | Linee guida: {1}</value></data>
+  <data name="GuidancePathDefaultName" xml:space="preserve"><value>Linea guida</value></data>
+  <data name="GuidancePathNoPoints" xml:space="preserve"><value>Nessun punto</value></data>
+  <data name="GuidancePathSummaryFormat" xml:space="preserve"><value>{0} punti | A ({1:0.000000}, {2:0.000000}) -&gt; B ({3:0.000000}, {4:0.000000})</value></data>
+  <data name="GuidancePathCopyFormat" xml:space="preserve"><value>Copia di {0}</value></data>
+  <data name="RectifiedGuidancePathFormat" xml:space="preserve"><value>{0} rettificata</value></data>
+  <data name="RectifiedPositiveGuidancePathFormat" xml:space="preserve"><value>{0} rettificata (+)</value></data>
+  <data name="RectifiedNegativeGuidancePathFormat" xml:space="preserve"><value>{0} rettificata (-)</value></data>
+  <data name="PositiveDirectionLabel" xml:space="preserve"><value>Lato positivo</value></data>
+  <data name="NegativeDirectionLabel" xml:space="preserve"><value>Lato negativo</value></data>
+  <data name="RectificationCandidateSummaryFormat" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="RectificationAcceptedSummaryFormat" xml:space="preserve"><value>Accettata. Intervallo distanze {0:0.00} m - {1:0.00} m, offset target {2:0.00} m, tolleranza +/- {3:0.00} m, deviazione massima {4:0.00} m.</value></data>
+  <data name="RectificationRejectedSummaryFormat" xml:space="preserve"><value>Scartata. Intervallo distanze {0:0.00} m - {1:0.00} m, offset target {2:0.00} m, tolleranza +/- {3:0.00} m, deviazione massima {4:0.00} m.</value></data>
+  <data name="PackageNotFound" xml:space="preserve"><value>Il pacchetto '{0}' non è stato trovato.</value></data>
+  <data name="PackageMissingTaskDataXml" xml:space="preserve"><value>Il pacchetto '{0}' non contiene TASKDATA/TASKDATA.XML.</value></data>
+  <data name="PackageInvalidTaskDataPath" xml:space="preserve"><value>Il pacchetto '{0}' contiene un percorso TASKDATA non valido.</value></data>
+  <data name="GuidanceNeedsAtLeastTwoPointsError" xml:space="preserve"><value>Una linea guida deve avere almeno due punti per poter essere traslata.</value></data>
+  <data name="OnlyGuidancePathTypeError" xml:space="preserve"><value>Solo le linee di tipo {0} possono essere copiate come linee guida.</value></data>
+  <data name="TranslationNotSupportedAtPolesError" xml:space="preserve"><value>La traslazione della linea guida non è supportata ai poli.</value></data>
+  <data name="TranslationRequiresDistinctPointsError" xml:space="preserve"><value>La traslazione della linea guida richiede punti iniziale e finale distinti.</value></data>
+</root>

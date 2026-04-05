@@ -2,8 +2,361 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="using:TweakOne.ViewModels"
+        mc:Ignorable="d"
         x:Class="TweakOne.MainWindow"
-        Title="TweakOne">
-    Welcome to Avalonia!
+        x:DataType="vm:MainWindowViewModel"
+        Width="1400"
+        Height="900"
+        MinWidth="1100"
+        MinHeight="700"
+        Title="{Binding Strings.WindowTitle}">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*,Auto,*" Margin="16">
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="12">
+            <Button Content="{Binding Strings.OpenSourcePackageButton}" Click="OpenSourceDocument_Click" />
+            <TextBlock VerticalAlignment="Center" Text="{Binding SourceFilePathDisplay}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="12" Margin="0,12,0,12">
+            <Button Content="{Binding Strings.OpenTargetPackageButton}" Click="OpenTargetDocument_Click" />
+            <Button Content="{Binding Strings.SaveTargetPackageButton}" Click="SaveTargetDocument_Click" />
+            <TextBlock VerticalAlignment="Center" Text="{Binding TargetFilePathDisplay}" />
+        </StackPanel>
+
+        <TabControl Grid.Row="2" Grid.ColumnSpan="3">
+            <TabItem Header="{Binding Strings.CloneTabHeader}">
+                <Grid Margin="0,12,0,0" ColumnDefinitions="*,Auto,*">
+                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="8">
+                            <TextBlock Text="{Binding Strings.SourceFieldHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <ComboBox Grid.Row="1"
+                                      ItemsSource="{Binding SourcePartfields}"
+                                      SelectedItem="{Binding SelectedSourcePartfield}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:PartfieldViewModel">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                            <TextBlock Text="{Binding Summary}" Classes="hint" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Grid.Row="2" Text="{Binding SelectedSourcePartfieldSummaryDisplay}" />
+
+                            <Grid Grid.Row="3" ColumnDefinitions="340,*" ColumnSpacing="12">
+                                <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                        <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding CloneSourcePreviewZoom}" TickFrequency="0.25" />
+                                        <TextBlock Grid.Column="2" Text="{Binding CloneSourcePreviewZoomDisplay}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetCloneSourcePreviewZoom_Click" />
+                                    </Grid>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                            <LayoutTransformControl>
+                                                <LayoutTransformControl.LayoutTransform>
+                                                    <ScaleTransform ScaleX="{Binding CloneSourcePreviewZoom}" ScaleY="{Binding CloneSourcePreviewZoom}" />
+                                                </LayoutTransformControl.LayoutTransform>
+                                                <ItemsControl ItemsSource="{Binding SourcePreviewShapes}" Width="320" Height="320">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <Canvas Width="320" Height="320" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </LayoutTransformControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="8">
+                                    <TextBlock Text="{Binding Strings.GuidanceLinesHeader}" FontWeight="SemiBold" />
+                                    <ListBox Grid.Row="1"
+                                             ItemsSource="{Binding SelectedSourcePartfield.GuidancePaths}"
+                                             SelectedItem="{Binding SelectedSourceGuidancePath}"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:GuidancePathViewModel">
+                                                <StackPanel Margin="0,4,0,4">
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Grid>
+
+                            <TextBlock Grid.Row="4" Text="{Binding Strings.SourceGuidanceHint}" Foreground="Gray" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0" Width="240">
+                        <StackPanel VerticalAlignment="Center" Spacing="12">
+                            <TextBlock Text="{Binding Strings.CloneControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding Strings.CloneDesignatorLabel}" />
+                            <TextBox Text="{Binding CloneDesignator}" Watermark="{Binding Strings.CloneDesignatorWatermark}" />
+                            <TextBlock Text="{Binding Strings.TranslationOffsetMetersLabel}" />
+                            <TextBox Text="{Binding TranslationOffsetMeters}" />
+                            <Button Content="{Binding Strings.CloneAsIsButton}" Click="CloneSimple_Click" IsEnabled="{Binding CanCloneGuidancePath}" />
+                            <Button Content="{Binding Strings.CloneWithAutoTranslationButton}" Click="CloneTranslated_Click" IsEnabled="{Binding CanCloneGuidancePath}" />
+                            <Button Content="{Binding Strings.DeleteSelectedTargetGuidanceButton}" Click="DeleteSelectedTargetGuidance_Click" IsEnabled="{Binding CanDeleteTargetGuidancePath}" />
+                            <TextBlock TextWrapping="Wrap" Foreground="Gray" Text="{Binding Strings.AutoTranslationDescription}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="8">
+                            <TextBlock Text="{Binding Strings.TargetFieldHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <ComboBox Grid.Row="1"
+                                      ItemsSource="{Binding TargetPartfields}"
+                                      SelectedItem="{Binding SelectedTargetPartfield}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:PartfieldViewModel">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                            <TextBlock Text="{Binding Summary}" Classes="hint" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Grid.Row="2" Text="{Binding SelectedTargetPartfieldSummaryDisplay}" />
+
+                            <Grid Grid.Row="3" ColumnDefinitions="340,*" ColumnSpacing="12">
+                                <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                        <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding CloneTargetPreviewZoom}" TickFrequency="0.25" />
+                                        <TextBlock Grid.Column="2" Text="{Binding CloneTargetPreviewZoomDisplay}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetCloneTargetPreviewZoom_Click" />
+                                    </Grid>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                            <LayoutTransformControl>
+                                                <LayoutTransformControl.LayoutTransform>
+                                                    <ScaleTransform ScaleX="{Binding CloneTargetPreviewZoom}" ScaleY="{Binding CloneTargetPreviewZoom}" />
+                                                </LayoutTransformControl.LayoutTransform>
+                                                <ItemsControl ItemsSource="{Binding TargetPreviewShapes}" Width="320" Height="320">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <Canvas Width="320" Height="320" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </LayoutTransformControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="8">
+                                    <TextBlock Text="{Binding Strings.TargetGuidanceLinesHeader}" FontWeight="SemiBold" />
+                                    <ListBox Grid.Row="1"
+                                             ItemsSource="{Binding SelectedTargetPartfield.GuidancePaths}"
+                                             SelectedItem="{Binding SelectedTargetGuidancePath}"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:GuidancePathViewModel">
+                                                <StackPanel Margin="0,4,0,4">
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Grid>
+
+                            <TextBlock Grid.Row="4" Text="{Binding Strings.TargetGuidanceHint}" Foreground="Gray" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="{Binding Strings.RectificationTabHeader}">
+                <Grid Margin="0,12,0,0" ColumnDefinitions="*,Auto,*">
+                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="8">
+                            <TextBlock Text="{Binding Strings.SourceFieldHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <ComboBox Grid.Row="1"
+                                      ItemsSource="{Binding SourcePartfields}"
+                                      SelectedItem="{Binding SelectedSourcePartfield}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:PartfieldViewModel">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                            <TextBlock Text="{Binding Summary}" Classes="hint" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Grid.Row="2" Text="{Binding SelectedSourcePartfieldSummaryDisplay}" />
+
+                            <Grid Grid.Row="3" ColumnDefinitions="340,*" ColumnSpacing="12">
+                                <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                        <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding RectificationSourcePreviewZoom}" TickFrequency="0.25" />
+                                        <TextBlock Grid.Column="2" Text="{Binding RectificationSourcePreviewZoomDisplay}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetRectificationSourcePreviewZoom_Click" />
+                                    </Grid>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                            <LayoutTransformControl>
+                                                <LayoutTransformControl.LayoutTransform>
+                                                    <ScaleTransform ScaleX="{Binding RectificationSourcePreviewZoom}" ScaleY="{Binding RectificationSourcePreviewZoom}" />
+                                                </LayoutTransformControl.LayoutTransform>
+                                                <ItemsControl ItemsSource="{Binding SourcePreviewShapes}" Width="320" Height="320">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <Canvas Width="320" Height="320" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </LayoutTransformControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="8">
+                                    <TextBlock Text="{Binding Strings.GuidanceLinesHeader}" FontWeight="SemiBold" />
+                                    <ListBox Grid.Row="1"
+                                             ItemsSource="{Binding SelectedSourcePartfield.GuidancePaths}"
+                                             SelectedItem="{Binding SelectedSourceGuidancePath}"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:GuidancePathViewModel">
+                                                <StackPanel Margin="0,4,0,4">
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Grid>
+
+                            <TextBlock Grid.Row="4" Text="{Binding Strings.RectificationDescription}" Foreground="Gray" TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0" Width="280">
+                        <StackPanel VerticalAlignment="Center" Spacing="12">
+                            <TextBlock Text="{Binding Strings.RectificationControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding Strings.RectificationDesignatorLabel}" />
+                            <TextBox Text="{Binding RectificationDesignator}" Watermark="{Binding Strings.RectificationDesignatorWatermark}" />
+                            <TextBlock Text="{Binding Strings.RectificationOffsetMetersLabel}" />
+                            <TextBox Text="{Binding RectificationOffsetMeters}" />
+                            <TextBlock Text="{Binding Strings.RectificationRowCountLabel}" />
+                            <TextBox Text="{Binding RectificationRowCount}" />
+                            <TextBlock Text="{Binding Strings.RectificationApplicationOffsetMetersLabel}" />
+                            <TextBlock Text="{Binding RectificationApplicationOffsetDisplay}" />
+                            <TextBlock Text="{Binding Strings.RectificationToleranceMetersLabel}" />
+                            <TextBox Text="{Binding RectificationToleranceMeters}" />
+                            <Button Content="{Binding Strings.AnalyzeRectificationButton}" Click="AnalyzeRectification_Click" IsEnabled="{Binding CanAnalyzeRectification}" />
+                            <Button Content="{Binding Strings.ApplyRectifiedGuidanceButton}" Click="ApplyRectification_Click" IsEnabled="{Binding CanApplyRectification}" />
+                            <TextBlock Text="{Binding Strings.RectificationResultHeader}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding RectificationResultDisplay}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="8">
+                            <TextBlock Text="{Binding Strings.TargetFieldHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <ComboBox Grid.Row="1"
+                                      ItemsSource="{Binding TargetPartfields}"
+                                      SelectedItem="{Binding SelectedTargetPartfield}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:PartfieldViewModel">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" />
+                                            <TextBlock Text="{Binding Summary}" Classes="hint" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Grid.Row="2" Text="{Binding SelectedTargetPartfieldSummaryDisplay}" />
+
+                            <Grid Grid.Row="3" ColumnDefinitions="340,*" ColumnSpacing="12">
+                                <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                        <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
+                                        <Slider Grid.Column="1" Minimum="0.5" Maximum="4" Value="{Binding RectificationTargetPreviewZoom}" TickFrequency="0.25" />
+                                        <TextBlock Grid.Column="2" Text="{Binding RectificationTargetPreviewZoomDisplay}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetRectificationTargetPreviewZoom_Click" />
+                                    </Grid>
+                                    <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                            <LayoutTransformControl>
+                                                <LayoutTransformControl.LayoutTransform>
+                                                    <ScaleTransform ScaleX="{Binding RectificationTargetPreviewZoom}" ScaleY="{Binding RectificationTargetPreviewZoom}" />
+                                                </LayoutTransformControl.LayoutTransform>
+                                                <ItemsControl ItemsSource="{Binding RectificationTargetPreviewShapes}" Width="320" Height="320">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <Canvas Width="320" Height="320" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                            <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </LayoutTransformControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="8">
+                                    <TextBlock Text="{Binding Strings.TargetGuidanceLinesHeader}" FontWeight="SemiBold" />
+                                    <ListBox Grid.Row="1"
+                                             ItemsSource="{Binding SelectedTargetPartfield.GuidancePaths}"
+                                             SelectedItem="{Binding SelectedTargetGuidancePath}"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:GuidancePathViewModel">
+                                                <StackPanel Margin="0,4,0,4">
+                                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Grid>
+
+                            <TextBlock Grid.Row="4" Text="{Binding Strings.RectificationPreviewHint}" Foreground="Gray" TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Border Grid.Row="3" Grid.ColumnSpan="3" Margin="0,12,0,0" Padding="12" BorderBrush="Gray" BorderThickness="1" CornerRadius="6">
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+        </Border>
+    </Grid>
 </Window>

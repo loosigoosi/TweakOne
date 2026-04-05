@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ISO11783_TaskData VersionMajor="4" VersionMinor="3" ManagementSoftwareManufacturer="AGCO GmbH" ManagementSoftwareVersion="1.1.1640" DataTransferOrigin="1">
+  <CTR A="CTR60" B="Foco" />
+  <FRM A="FRM68" B="_LagoGherardi" />
+  <PFD A="PFD2" C="TEST" D="18370" E="CTR60" F="FRM68">
+    <PLN A="1" C="18370">
+      <LSG A="1" C="0" D="0">
+        <PNT A="2" C="44.898653645" D="7.587959343" />
+        <PNT A="2" C="44.897806256" D="7.587959343" />
+        <PNT A="2" C="44.897817656" D="7.588849837" />
+        <PNT A="2" C="44.897950655" D="7.589439923" />
+        <PNT A="2" C="44.898007655" D="7.58978861" />
+        <PNT A="2" C="44.898068454" D="7.589976364" />
+        <PNT A="2" C="44.899102034" D="7.590271407" />
+        <PNT A="2" C="44.898653645" D="7.587959343" />
+      </LSG>
+    </PLN>
+    <LSG A="5" B="Est contro Vallina">
+      <PNT A="2" C="44.89912655390632" D="7.5902489972426155" />
+      <PNT A="2" C="44.898157843906326" D="7.589974997242616" />
+    </LSG>
+  </PFD>
+  <AFE A="LINKLIST.XML" B="1" C="" D="1" />
+</ISO11783_TaskData>

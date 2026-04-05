@@ -1,0 +1,116 @@
+{
+  "VersionMajor" : 1,
+  "VersionMinor" : 0,
+  "pdts" : null,
+  "wkrs" : null,
+  "hlis" : null,
+  "plns" : [ {
+    "id" : "PLN68",
+    "uuid" : "{8325464a-8cd4-11f0-8d29-a7ae635f60ba}",
+    "headland_segments" : {
+      "type" : 1,
+      "version" : 3,
+      "segments" : [ {
+        "end" : 0,
+        "start" : 0,
+        "width" : 0,
+        "join_type" : 1,
+        "turn_boundary_width" : 0
+      } ],
+      "boundary_uuid" : "{e553e35a-7f7a-48d6-b0da-f87fdd5aef6d}",
+      "boundary_checksum" : "ff5c517c2de13cce9335d7b3d9644f52"
+    }
+  }, {
+    "id" : "PLN97",
+    "uuid" : "{28c9cfec-dc5e-483b-b6e5-6d909340ad96}",
+    "headland_segments" : {
+      "type" : 1,
+      "version" : 3,
+      "segments" : [ {
+        "end" : 0,
+        "start" : 0,
+        "width" : 7500,
+        "join_type" : 1,
+        "turn_boundary_width" : 0
+      } ],
+      "boundary_uuid" : "{99552124-a3a7-4bcd-95fd-9cbf1b36c77f}",
+      "boundary_checksum" : "508a74f423e910dfc2c6c952fe4d99b7"
+    }
+  } ],
+  "ggps" : [ {
+    "id" : "GGP41",
+    "uuid" : "{e571ec4e-dd0f-11ed-a495-76e1b92e86f3}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP45",
+    "uuid" : "{e57adfb6-dd0f-11ed-a495-76e1b92e86f3}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP242",
+    "uuid" : "{e3479a82-9208-11ee-af10-bdcc61b82737}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP37",
+    "uuid" : "{e56c16fc-dd0f-11ed-a495-76e1b92e86f3}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP42",
+    "uuid" : "{e571f090-dd0f-11ed-a495-76e1b92e86f3}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP229",
+    "uuid" : "{e2ff2b3a-9208-11ee-af10-bdcc61b82737}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP244",
+    "uuid" : "{e391c21a-9208-11ee-af10-bdcc61b82737}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP46",
+    "uuid" : "{e57ae448-dd0f-11ed-a495-76e1b92e86f3}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP228",
+    "uuid" : "{e2b4e5d4-9208-11ee-af10-bdcc61b82737}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP1286",
+    "uuid" : "{84437376-8cd4-11f0-8d29-a7ae635f60ba}",
+    "type" : 0,
+    "source" : 2,
+    "gd_wayline_version" : 1
+  }, {
+    "id" : "GGP1314",
+    "uuid" : "{3fcb414e-a3ac-11f0-bbcd-b947af9383f4}",
+    "type" : 0,
+    "source" : 2,
+    "gd_wayline_version" : 2
+  }, {
+    "id" : "GGP367",
+    "uuid" : "{01394154-bca2-4b1a-8864-993a054cb983}",
+    "type" : 0,
+    "source" : 2,
+    "gd_wayline_version" : 2
+  }, {
+    "id" : "GGP366",
+    "uuid" : "{0e609b59-0be2-484c-ba1e-850d2206a74b}",
+    "type" : 0,
+    "source" : 2,
+    "gd_wayline_version" : 1
+  }, {
+    "id" : "GGP365",
+    "uuid" : "{8372fa26-e384-427e-93d6-5c45d353e83a}",
+    "type" : 0,
+    "source" : 2,
+    "gd_wayline_version" : 2
+  } ]
+}
