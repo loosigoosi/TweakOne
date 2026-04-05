@@ -57,17 +57,15 @@ public sealed class IsoXmlGuidanceRectificationService
         var projectedSourcePoints = sourceLineString.Points.Select(point => Project(point, cosLatitude)).ToArray();
         var centroid = new ProjectedPoint(projectedSourcePoints.Average(static point => point.X), projectedSourcePoints.Average(static point => point.Y));
         var direction = ComputePrincipalDirection(projectedSourcePoints, centroid);
-        var targetCentroid = TryGetTargetCentroid(targetPartfield, cosLatitude);
         var applicationOffsetMeters = rowSpacingMeters * rowCount;
 
-        var positiveCandidate = EvaluateCandidate(targetPartfield, sourceLineString, projectedSourcePoints, centroid, direction, rowSpacingMeters, applicationOffsetMeters, toleranceMeters, cosLatitude, targetCentroid, GetPositiveDesignator(sourceLineString, designator));
-        var negativeCandidate = EvaluateCandidate(targetPartfield, sourceLineString, projectedSourcePoints, centroid, direction, -rowSpacingMeters, -applicationOffsetMeters, toleranceMeters, cosLatitude, targetCentroid, GetNegativeDesignator(sourceLineString, designator));
+        var positiveCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, centroid, direction, rowSpacingMeters, applicationOffsetMeters, toleranceMeters, cosLatitude, GetPositiveDesignator(sourceLineString, designator));
+        var negativeCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, centroid, direction, -rowSpacingMeters, -applicationOffsetMeters, toleranceMeters, cosLatitude, GetNegativeDesignator(sourceLineString, designator));
 
         return new IsoXmlGuidanceRectificationResult(rowSpacingMeters, rowCount, applicationOffsetMeters, toleranceMeters, new[] { positiveCandidate.ToResult(), negativeCandidate.ToResult() });
     }
 
     private RectificationCandidateEvaluation EvaluateCandidate(
-        IsoXmlPartfield targetPartfield,
         IsoXmlLineString sourceLineString,
         IReadOnlyList<ProjectedPoint> projectedSourcePoints,
         ProjectedPoint centroid,
@@ -76,7 +74,6 @@ public sealed class IsoXmlGuidanceRectificationService
         double signedApplicationOffsetMeters,
         double toleranceMeters,
         double cosLatitude,
-        ProjectedPoint? targetCentroid,
         string? designator)
     {
         var analysisCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, centroid, direction, signedAnalysisOffsetMeters, cosLatitude, designator);
@@ -84,8 +81,7 @@ public sealed class IsoXmlGuidanceRectificationService
         var projectedAnalysisEnd = Project(analysisCandidate.Points[1], cosLatitude);
         var analysisDirectionVector = new ProjectedPoint(projectedAnalysisEnd.X - projectedAnalysisStart.X, projectedAnalysisEnd.Y - projectedAnalysisStart.Y);
 
-        var baseCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, centroid, direction, signedApplicationOffsetMeters, cosLatitude, designator);
-        var fittedCandidate = FitCandidateToTarget(targetPartfield, baseCandidate, designator);
+        var outputCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, centroid, direction, signedApplicationOffsetMeters, cosLatitude, designator);
 
         var distances = projectedSourcePoints
             .Select(point => DistanceToInfiniteLine(point, projectedAnalysisStart, analysisDirectionVector))
@@ -95,13 +91,60 @@ public sealed class IsoXmlGuidanceRectificationService
         var maxDistance = distances.Max();
         var desiredOffset = Math.Abs(signedAnalysisOffsetMeters);
         var maxDeviation = distances.Max(distance => Math.Abs(distance - desiredOffset));
-        var isAccepted = minDistance >= (desiredOffset - toleranceMeters) && maxDistance <= (desiredOffset + toleranceMeters);
-        var projectedCandidateStart = Project(fittedCandidate.Points[0], cosLatitude);
-        var projectedCandidateEnd = Project(fittedCandidate.Points[1], cosLatitude);
-        var midpoint = new ProjectedPoint((projectedCandidateStart.X + projectedCandidateEnd.X) / 2d, (projectedCandidateStart.Y + projectedCandidateEnd.Y) / 2d);
-        var midpointDistance = targetCentroid is null ? double.MaxValue : DistanceSquared(midpoint, targetCentroid.Value);
+        var lowerExcess = Math.Max(0d, (desiredOffset - toleranceMeters) - minDistance);
+        var upperExcess = Math.Max(0d, maxDistance - (desiredOffset + toleranceMeters));
+        var excessDeviation = Math.Max(lowerExcess, upperExcess);
+        var isAccepted = excessDeviation <= double.Epsilon;
 
-        return new RectificationCandidateEvaluation(fittedCandidate, signedApplicationOffsetMeters, isAccepted, minDistance, maxDistance, maxDeviation, midpointDistance);
+        if (isAccepted)
+        {
+            return new RectificationCandidateEvaluation(
+                outputCandidate,
+                signedApplicationOffsetMeters,
+                true,
+                minDistance,
+                maxDistance,
+                maxDeviation,
+                excessDeviation,
+                IsoXmlGuidanceRectificationMode.Standard,
+                new[] { outputCandidate });
+        }
+
+        if (excessDeviation < (toleranceMeters * 2d))
+        {
+            var smoothedCandidate = BuildSmoothedTransitionLine(
+                sourceLineString,
+                projectedSourcePoints,
+                centroid,
+                direction,
+                signedApplicationOffsetMeters,
+                cosLatitude,
+                signedApplicationOffsetMeters >= 0d
+                    ? GetPositiveSmoothedDesignator(sourceLineString, designator)
+                    : GetNegativeSmoothedDesignator(sourceLineString, designator));
+
+            return new RectificationCandidateEvaluation(
+                outputCandidate,
+                signedApplicationOffsetMeters,
+                true,
+                minDistance,
+                maxDistance,
+                maxDeviation,
+                excessDeviation,
+                IsoXmlGuidanceRectificationMode.TwoPass,
+                new[] { smoothedCandidate, outputCandidate });
+        }
+
+        return new RectificationCandidateEvaluation(
+            outputCandidate,
+            signedApplicationOffsetMeters,
+            false,
+            minDistance,
+            maxDistance,
+            maxDeviation,
+            excessDeviation,
+            IsoXmlGuidanceRectificationMode.Rejected,
+            Array.Empty<IsoXmlLineString>());
     }
 
     private IsoXmlLineString BuildCandidateLine(IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, ProjectedPoint centroid, ProjectedPoint direction, double signedOffsetMeters, double cosLatitude, string? designator)
@@ -126,15 +169,43 @@ public sealed class IsoXmlGuidanceRectificationService
         };
     }
 
-    private IsoXmlLineString FitCandidateToTarget(IsoXmlPartfield targetPartfield, IsoXmlLineString candidate, string? designator)
+    private static IsoXmlLineString BuildSmoothedTransitionLine(
+        IsoXmlLineString sourceLineString,
+        IReadOnlyList<ProjectedPoint> projectedSourcePoints,
+        ProjectedPoint centroid,
+        ProjectedPoint direction,
+        double signedApplicationOffsetMeters,
+        double cosLatitude,
+        string? designator)
     {
-        var temporaryTarget = new IsoXmlPartfield();
-        foreach (var polygon in targetPartfield.Polygons)
+        var normal = new ProjectedPoint(-direction.Y, direction.X);
+        var smoothedLine = new IsoXmlLineString
         {
-            temporaryTarget.Polygons.Add(polygon);
+            Type = IsoXmlLineString.GuidancePathType,
+            Designator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator : designator
+        };
+
+        foreach (var point in projectedSourcePoints
+                     .Select(projectedPoint =>
+                     {
+                         var relative = Subtract(projectedPoint, centroid);
+                         return new
+                         {
+                             Point = projectedPoint,
+                             LongitudinalOffset = Dot(relative, direction),
+                             LateralOffset = Dot(relative, normal)
+                         };
+                     })
+                     .OrderBy(static entry => entry.LongitudinalOffset))
+        {
+            var smoothedLateralOffset = (signedApplicationOffsetMeters + point.LateralOffset) / 2d;
+            var smoothedPoint = Add(
+                Add(centroid, new ProjectedPoint(direction.X * point.LongitudinalOffset, direction.Y * point.LongitudinalOffset)),
+                new ProjectedPoint(normal.X * smoothedLateralOffset, normal.Y * smoothedLateralOffset));
+            smoothedLine.Points.Add(ToIsoPoint(smoothedPoint, cosLatitude));
         }
 
-        return _generator.CreateTranslatedCopy(temporaryTarget, candidate, 0d, designator);
+        return smoothedLine;
     }
 
     private static string GetPositiveDesignator(IsoXmlLineString sourceLineString, string? designator)
@@ -147,6 +218,18 @@ public sealed class IsoXmlGuidanceRectificationService
     {
         var baseDesignator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator ?? Strings.GuidancePathDefaultName : designator;
         return Strings.FormatNegativeRectifiedGuidanceDesignator(baseDesignator);
+    }
+
+    private static string GetPositiveSmoothedDesignator(IsoXmlLineString sourceLineString, string? designator)
+    {
+        var baseDesignator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator ?? Strings.GuidancePathDefaultName : designator;
+        return Strings.FormatPositiveSmoothedGuidanceDesignator(baseDesignator);
+    }
+
+    private static string GetNegativeSmoothedDesignator(IsoXmlLineString sourceLineString, string? designator)
+    {
+        var baseDesignator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator ?? Strings.GuidancePathDefaultName : designator;
+        return Strings.FormatNegativeSmoothedGuidanceDesignator(baseDesignator);
     }
 
     private static ProjectedPoint ComputePrincipalDirection(IReadOnlyList<ProjectedPoint> points, ProjectedPoint centroid)
@@ -173,24 +256,6 @@ public sealed class IsoXmlGuidanceRectificationService
         }
 
         return new ProjectedPoint(direction.X / length, direction.Y / length);
-    }
-
-    private static ProjectedPoint? TryGetTargetCentroid(IsoXmlPartfield targetPartfield, double cosLatitude)
-    {
-        var boundaryPoints = targetPartfield.Polygons
-            .Where(static polygon => polygon.Type == 1)
-            .SelectMany(static polygon => polygon.LineStrings)
-            .SelectMany(static lineString => lineString.Points)
-            .ToArray();
-
-        if (boundaryPoints.Length == 0)
-        {
-            return null;
-        }
-
-        return new ProjectedPoint(
-            boundaryPoints.Average(point => DegreesToRadians(point.East) * EarthRadiusMeters * cosLatitude),
-            boundaryPoints.Average(point => DegreesToRadians(point.North) * EarthRadiusMeters));
     }
 
     private static double DistanceToInfiniteLine(ProjectedPoint point, ProjectedPoint lineStart, ProjectedPoint lineDirection)
@@ -248,11 +313,13 @@ public sealed class IsoXmlGuidanceRectificationService
         double MinDistanceMeters,
         double MaxDistanceMeters,
         double MaxDeviationMeters,
-        double MidpointDistanceSquaredToTargetCentroid)
+        double ExcessDeviationMeters,
+        IsoXmlGuidanceRectificationMode Mode,
+        IReadOnlyList<IsoXmlLineString> GeneratedLines)
     {
         public IsoXmlGuidanceRectificationCandidateResult ToResult()
         {
-            return new IsoXmlGuidanceRectificationCandidateResult(CandidateLine, SignedApplicationOffsetMeters, IsAccepted, MinDistanceMeters, MaxDistanceMeters, MaxDeviationMeters);
+            return new IsoXmlGuidanceRectificationCandidateResult(CandidateLine, SignedApplicationOffsetMeters, IsAccepted, MinDistanceMeters, MaxDistanceMeters, MaxDeviationMeters, ExcessDeviationMeters, Mode, GeneratedLines);
         }
     }
 
@@ -315,7 +382,7 @@ public sealed class IsoXmlGuidanceRectificationCandidateResult
     /// <summary>
     /// Initializes a new instance of the <see cref="IsoXmlGuidanceRectificationCandidateResult"/> class.
     /// </summary>
-    public IsoXmlGuidanceRectificationCandidateResult(IsoXmlLineString candidateLine, double signedApplicationOffsetMeters, bool isAccepted, double minDistanceMeters, double maxDistanceMeters, double maxDeviationMeters)
+    public IsoXmlGuidanceRectificationCandidateResult(IsoXmlLineString candidateLine, double signedApplicationOffsetMeters, bool isAccepted, double minDistanceMeters, double maxDistanceMeters, double maxDeviationMeters, double excessDeviationMeters, IsoXmlGuidanceRectificationMode mode, IReadOnlyList<IsoXmlLineString> generatedLines)
     {
         CandidateLine = candidateLine ?? throw new ArgumentNullException(nameof(candidateLine));
         SignedApplicationOffsetMeters = signedApplicationOffsetMeters;
@@ -323,6 +390,9 @@ public sealed class IsoXmlGuidanceRectificationCandidateResult
         MinDistanceMeters = minDistanceMeters;
         MaxDistanceMeters = maxDistanceMeters;
         MaxDeviationMeters = maxDeviationMeters;
+        ExcessDeviationMeters = excessDeviationMeters;
+        Mode = mode;
+        GeneratedLines = generatedLines ?? throw new ArgumentNullException(nameof(generatedLines));
     }
 
     /// <summary>
@@ -354,4 +424,29 @@ public sealed class IsoXmlGuidanceRectificationCandidateResult
     /// Gets the largest absolute deviation from the desired row spacing in meters.
     /// </summary>
     public double MaxDeviationMeters { get; }
+
+    /// <summary>
+    /// Gets the amount by which the analysis exceeded the tolerance envelope in meters.
+    /// </summary>
+    public double ExcessDeviationMeters { get; }
+
+    /// <summary>
+    /// Gets the rectification mode chosen for this direction.
+    /// </summary>
+    public IsoXmlGuidanceRectificationMode Mode { get; }
+
+    /// <summary>
+    /// Gets the guidance lines to preview or apply for this direction.
+    /// </summary>
+    public IReadOnlyList<IsoXmlLineString> GeneratedLines { get; }
+}
+
+/// <summary>
+/// Describes how a rectification candidate should be consumed.
+/// </summary>
+public enum IsoXmlGuidanceRectificationMode
+{
+    Rejected = 0,
+    Standard = 1,
+    TwoPass = 2
 }

@@ -195,6 +195,9 @@
   <data name="DeleteSelectedTargetGuidanceButton" xml:space="preserve">
     <value>Elimina linea target selezionata</value>
   </data>
+  <data name="UseSourceAsTargetButton" xml:space="preserve">
+    <value>Usa sorgente come target &gt;</value>
+  </data>
   <data name="AutoTranslationDescription" xml:space="preserve">
     <value>La traslazione automatica mantiene la direzione A-B, sceglie il lato più adatto al campo target e, se necessario, fa scorrere lungo la retta i marcatori AB a due punti.</value>
   </data>
@@ -321,6 +324,12 @@
   <data name="RectifiedNegativeGuidancePathFormat" xml:space="preserve">
     <value>{0} rettificata (-)</value>
   </data>
+  <data name="RectifiedPositiveSmoothedGuidancePathFormat" xml:space="preserve">
+    <value>{0} smoothed (+)</value>
+  </data>
+  <data name="RectifiedNegativeSmoothedGuidancePathFormat" xml:space="preserve">
+    <value>{0} smoothed (-)</value>
+  </data>
   <data name="PositiveDirectionLabel" xml:space="preserve">
     <value>Lato positivo</value>
   </data>
@@ -332,6 +341,9 @@
   </data>
   <data name="RectificationAcceptedSummaryFormat" xml:space="preserve">
     <value>Accettata. Intervallo distanze {0:0.00} m - {1:0.00} m, offset target {2:0.00} m, tolleranza +/- {3:0.00} m, deviazione massima {4:0.00} m.</value>
+  </data>
+  <data name="RectificationTwoPassSummaryFormat" xml:space="preserve">
+    <value>Doppio passaggio. Intervallo distanze {0:0.00} m - {1:0.00} m, offset target {2:0.00} m, tolleranza +/- {3:0.00} m, deviazione massima {4:0.00} m, scarto eccedente {5:0.00} m, smussatura interna {6:0.00} m.</value>
   </data>
   <data name="RectificationRejectedSummaryFormat" xml:space="preserve">
     <value>Scartata. Intervallo distanze {0:0.00} m - {1:0.00} m, offset target {2:0.00} m, tolleranza +/- {3:0.00} m, deviazione massima {4:0.00} m.</value>

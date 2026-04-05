@@ -15,6 +15,7 @@
 - For the real rectification workflow, the regression-line validation should use the row spacing as the desired offset, then place the final rectified guideline at machine width offset computed as the number of rows × row spacing. Do not auto-choose the final machine-width offset direction yet; generate both offset directions and let the user delete the unneeded one.
 - For this project's ISOXML workflow, it should be possible to deliver guideline additions as a TASK update payload instead of importing a replacement field, because in-cab systems can persist added guidelines through TASK import onto the existing field.
 - For rectification, when the unacceptable deviation is less than twice the desired tolerance, use a two-pass algorithm that outputs four lines: two outer rectified lines and two inner smoothed lines offset by half the excess deviation.
+- For rectification output, added guidance lines should keep A and B aligned on the normal to the examined line, and rectification lines should not be truncated or fit to target field boundaries because they are not being copied into another field.
 
 ## Field Previews
 - For this project's field previews, guidance lines should be rendered with a 1-pixel stroke thickness, and zoom should react to the mouse wheel, ensuring that guidance lines remain visually 1 pixel thick even while zooming.

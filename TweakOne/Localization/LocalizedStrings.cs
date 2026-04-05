@@ -59,6 +59,8 @@ internal sealed class LocalizedStrings
 
     public string DeleteSelectedTargetGuidanceButton => Resources.DeleteSelectedTargetGuidanceButton;
 
+    public string UseSourceAsTargetButton => Resources.UseSourceAsTargetButton;
+
     public string AutoTranslationDescription => Resources.AutoTranslationDescription;
 
     public string RectificationControlsHeader => Resources.RectificationControlsHeader;
@@ -153,9 +155,15 @@ internal sealed class LocalizedStrings
 
     public string FormatNegativeRectifiedGuidanceDesignator(string displayName) => Format(Resources.RectifiedNegativeGuidancePathFormat, displayName);
 
+    public string FormatPositiveSmoothedGuidanceDesignator(string displayName) => Format(Resources.RectifiedPositiveSmoothedGuidancePathFormat, displayName);
+
+    public string FormatNegativeSmoothedGuidanceDesignator(string displayName) => Format(Resources.RectifiedNegativeSmoothedGuidancePathFormat, displayName);
+
     public string FormatRectificationCandidateSummary(string directionLabel, string candidateSummary) => Format(Resources.RectificationCandidateSummaryFormat, directionLabel, candidateSummary);
 
     public string FormatRectificationAcceptedSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation) => Format(Resources.RectificationAcceptedSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation);
+
+    public string FormatRectificationTwoPassSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation, double excessDeviation, double smoothingShift) => Format(Resources.RectificationTwoPassSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation, excessDeviation, smoothingShift);
 
     public string FormatRectificationRejectedSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation) => Format(Resources.RectificationRejectedSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation);
 

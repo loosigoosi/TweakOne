@@ -17,7 +17,7 @@ When seeding starts from an irregular field boundary, the first AB line is often
 ## Output
 A rectification analysis result containing:
 - the applied machine-width offset in meters,
-- two fitted straight candidate lines, one for each offset direction,
+- either two fitted straight candidate lines or four two-pass candidate lines,
 - whether each candidate is acceptable,
 - minimum distance from the source polyline to each candidate analysis line,
 - maximum distance from the source polyline to each candidate analysis line,
@@ -30,8 +30,12 @@ A rectification analysis result containing:
 4. Accept an analysis direction only when every measured distance from the source polyline to that analysis line remains within `rowSpacing ± tolerance`.
 5. Compute the applied machine-width offset as `rowCount × rowSpacing`.
 6. Build two final guidance lines at `+applicationOffset` and `-applicationOffset` from the regression line.
-7. Fit each final guidance line to the target field by snapping the AB endpoints to the target boundary intersections when possible.
+7. Keep the generated A and B endpoints aligned on the normals of the analyzed regression line so all produced lines share the same longitudinal extents.
 8. Allow the user to apply both accepted final guidance lines to the target field, then delete the unneeded one.
+9. If a straight candidate is rejected but its excess deviation above the tolerance envelope remains below `2 × tolerance`, generate a two-pass output for that direction:
+   1. an outer rectified line at the full application offset,
+   2. an inner smoothed line halfway between the source polyline and the outer rectified line.
+10. When both directions enter two-pass mode, output four lines total: two inner smoothed lines and two outer rectified lines.
 
 ## Acceptance rule
 The rectified straight line is acceptable only when:
@@ -41,9 +45,10 @@ The rectified straight line is acceptable only when:
 ## Current scope
 - Works on ISOXML v3 guidance lines.
 - Focuses on offline post-processing, not on-the-fly tractor guidance.
-- Uses the target field boundaries to clip or fit AB endpoints.
+- Uses the target field only as the destination context for the generated guidance lines; rectification itself does not clip or truncate the generated A-B extents.
 - Validates using row spacing, then applies machine-width offset as `rowCount × rowSpacing`.
 - Generates both machine-width directions so the user can delete the one that is not needed.
+- Uses a two-pass fallback when the excess deviation is positive but still less than `2 × tolerance`.
 
 ## Future refinement
 If a straight line is rejected, a later phase may generate a smoothed curve as an intermediate approximation, but that is outside the current scope.

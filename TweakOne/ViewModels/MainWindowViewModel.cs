@@ -23,6 +23,7 @@ internal sealed class MainWindowViewModel : ObservableObject
     private PartfieldViewModel? _selectedSourcePartfield;
     private PartfieldViewModel? _selectedTargetPartfield;
     private GuidancePathViewModel? _selectedSourceGuidancePath;
+    private GuidancePathViewModel? _selectedRectificationSourceGuidancePath;
     private GuidancePathViewModel? _selectedTargetGuidancePath;
     private IsoXmlGuidanceRectificationResult? _currentRectificationResult;
     private string? _sourceFilePath;
@@ -101,12 +102,14 @@ internal sealed class MainWindowViewModel : ObservableObject
             }
 
             SelectedSourceGuidancePath = value?.GuidancePaths.FirstOrDefault();
+            SelectedRectificationSourceGuidancePath = value?.GuidancePaths.FirstOrDefault();
             ResetCloneSourcePreviewPan();
             ResetRectificationSourcePreviewPan();
             RefreshCloneSourcePreview();
             RefreshRectificationSourcePreview();
             OnPropertyChanged(nameof(SelectedSourcePartfieldSummaryDisplay));
             OnPropertyChanged(nameof(CanCloneGuidancePath));
+            OnPropertyChanged(nameof(CanAnalyzeRectification));
             InvalidateRectificationResult();
         }
     }
@@ -160,8 +163,26 @@ internal sealed class MainWindowViewModel : ObservableObject
             }
 
             RefreshCloneSourcePreview();
-            RefreshRectificationSourcePreview();
             OnPropertyChanged(nameof(CanCloneGuidancePath));
+        }
+    }
+
+    public GuidancePathViewModel? SelectedRectificationSourceGuidancePath
+    {
+        get => _selectedRectificationSourceGuidancePath;
+        set
+        {
+            if (!SetProperty(ref _selectedRectificationSourceGuidancePath, value))
+            {
+                return;
+            }
+
+            if (value is not null && string.IsNullOrWhiteSpace(RectificationDesignator))
+            {
+                RectificationDesignator = Strings.FormatRectifiedGuidanceDesignator(value.DisplayName);
+            }
+
+            RefreshRectificationSourcePreview();
             OnPropertyChanged(nameof(CanAnalyzeRectification));
             InvalidateRectificationResult();
         }
@@ -372,9 +393,11 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public bool CanCloneGuidancePath => SelectedSourceGuidancePath is not null && SelectedTargetPartfield is not null;
 
+    public bool CanUseSourceAsTarget => _sourceDocument is not null;
+
     public bool CanDeleteTargetGuidancePath => SelectedTargetGuidancePath is not null && SelectedTargetPartfield is not null;
 
-    public bool CanAnalyzeRectification => SelectedSourceGuidancePath is not null && SelectedTargetPartfield is not null;
+    public bool CanAnalyzeRectification => SelectedRectificationSourceGuidancePath is not null && SelectedTargetPartfield is not null;
 
     public bool CanApplyRectification => _currentRectificationResult is not null && _currentRectificationResult.Candidates.Any(static candidate => candidate.IsAccepted) && SelectedTargetPartfield is not null;
 
@@ -388,6 +411,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         SourceFilePath = displayPath ?? filePath;
         SelectedSourcePartfield = SourcePartfields.FirstOrDefault(static partfield => partfield.GuidancePaths.Count > 0)
             ?? SourcePartfields.FirstOrDefault();
+        OnPropertyChanged(nameof(CanUseSourceAsTarget));
         StatusMessage = Strings.FormatLoadedSourcePackage(SourceFilePathDisplay);
     }
 
@@ -452,7 +476,7 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public void AnalyzeRectification()
     {
-        var source = SelectedSourceGuidancePath ?? throw new InvalidOperationException(Strings.SelectSourceGuidanceLineError);
+        var source = SelectedRectificationSourceGuidancePath ?? throw new InvalidOperationException(Strings.SelectSourceGuidanceLineError);
         var target = SelectedTargetPartfield ?? throw new InvalidOperationException(Strings.SelectTargetFieldError);
 
         var result = _rectificationService.AnalyzeRectification(
@@ -483,9 +507,12 @@ internal sealed class MainWindowViewModel : ObservableObject
         GuidancePathViewModel? lastApplied = null;
         foreach (var candidate in acceptedCandidates)
         {
-            var applied = candidate.CandidateLine.DeepClone();
-            target.Partfield.LineStrings.Add(applied);
-            lastApplied = new GuidancePathViewModel(applied);
+            foreach (var line in candidate.GeneratedLines)
+            {
+                var applied = line.DeepClone();
+                target.Partfield.LineStrings.Add(applied);
+                lastApplied = new GuidancePathViewModel(applied);
+            }
         }
 
         target.Refresh();
@@ -494,7 +521,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             SelectedTargetGuidancePath = target.GuidancePaths.LastOrDefault(path => path.DisplayName == lastApplied.DisplayName) ?? target.GuidancePaths.LastOrDefault();
         }
 
-        StatusMessage = Strings.FormatAppliedRectifiedGuidanceLines(acceptedCandidates.Length, target.DisplayName);
+        StatusMessage = Strings.FormatAppliedRectifiedGuidanceLines(acceptedCandidates.Sum(static candidate => candidate.GeneratedLines.Count), target.DisplayName);
         InvalidateRectificationResult();
     }
 
@@ -523,9 +550,12 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private string CreateRectificationCandidateSummary(IsoXmlGuidanceRectificationCandidateResult candidate)
     {
-        var detail = candidate.IsAccepted
-            ? Strings.FormatRectificationAcceptedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters)
-            : Strings.FormatRectificationRejectedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters);
+        var detail = candidate.Mode switch
+        {
+            IsoXmlGuidanceRectificationMode.Standard => Strings.FormatRectificationAcceptedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters),
+            IsoXmlGuidanceRectificationMode.TwoPass => Strings.FormatRectificationTwoPassSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters, candidate.ExcessDeviationMeters, candidate.ExcessDeviationMeters / 2d),
+            _ => Strings.FormatRectificationRejectedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters)
+        };
 
         var directionLabel = candidate.SignedApplicationOffsetMeters >= 0d
             ? Strings.PositiveDirectionLabel
@@ -614,7 +644,7 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     private void RefreshRectificationSourcePreview()
     {
-        ReplacePreviewShapes(RectificationSourcePreviewShapes, SelectedSourcePartfield, SelectedSourceGuidancePath, RectificationSourcePreviewZoom);
+        ReplacePreviewShapes(RectificationSourcePreviewShapes, SelectedSourcePartfield, SelectedRectificationSourceGuidancePath, RectificationSourcePreviewZoom);
     }
 
     private void RefreshRectificationTargetPreview()
@@ -624,7 +654,32 @@ internal sealed class MainWindowViewModel : ObservableObject
             SelectedTargetPartfield,
             null,
             RectificationTargetPreviewZoom,
-            _currentRectificationResult?.Candidates.Select(candidate => new PreviewOverlay(candidate.CandidateLine, candidate.SignedApplicationOffsetMeters >= 0d ? Brushes.LimeGreen : Brushes.YellowGreen)).ToArray());
+            CreateRectificationPreviewOverlays());
+    }
+
+    private IReadOnlyList<PreviewOverlay>? CreateRectificationPreviewOverlays()
+    {
+        if (_currentRectificationResult is null)
+        {
+            return null;
+        }
+
+        return _currentRectificationResult.Candidates
+            .SelectMany(CreateRectificationPreviewOverlays)
+            .ToArray();
+    }
+
+    private IEnumerable<PreviewOverlay> CreateRectificationPreviewOverlays(IsoXmlGuidanceRectificationCandidateResult candidate)
+    {
+        var usesPositiveDirection = candidate.SignedApplicationOffsetMeters >= 0d;
+        for (var index = 0; index < candidate.GeneratedLines.Count; index++)
+        {
+            yield return new PreviewOverlay(
+                candidate.GeneratedLines[index],
+                candidate.Mode == IsoXmlGuidanceRectificationMode.TwoPass && index == 0
+                    ? usesPositiveDirection ? Brushes.MediumSeaGreen : Brushes.DarkOliveGreen
+                    : usesPositiveDirection ? Brushes.LimeGreen : Brushes.YellowGreen);
+        }
     }
 
     private void InvalidateRectificationResult()

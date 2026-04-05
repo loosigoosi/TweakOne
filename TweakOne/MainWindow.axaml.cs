@@ -82,6 +82,24 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UseSourceAsTarget_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_sourcePackage is null)
+            {
+                throw new InvalidOperationException(Strings.NoSourceFileLoaded);
+            }
+
+            _targetPackage = ClonePackage(_sourcePackage);
+            ViewModel.LoadTargetDocument(_targetPackage.TaskDataXmlPath, _sourcePackage.PackagePath);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
+        {
+            ViewModel.StatusMessage = exception.Message;
+        }
+    }
+
     private void CloneSimple_Click(object? sender, RoutedEventArgs e)
     {
         try
@@ -379,5 +397,39 @@ public partial class MainWindow : Window
 
         e.Handled = true;
         return currentZoom + (delta > 0d ? WheelZoomStep : -WheelZoomStep);
+    }
+
+    private static IsoXmlTaskDataPackage ClonePackage(IsoXmlTaskDataPackage sourcePackage)
+    {
+        ArgumentNullException.ThrowIfNull(sourcePackage);
+
+        var clonedExtractionRootPath = Path.Combine(Path.GetTempPath(), "TweakOne", "Packages", Guid.NewGuid().ToString("N"));
+        CopyDirectory(sourcePackage.ExtractionRootPath, clonedExtractionRootPath);
+
+        var relativeTaskDataDirectoryPath = Path.GetRelativePath(sourcePackage.ExtractionRootPath, sourcePackage.TaskDataDirectoryPath);
+        var clonedTaskDataDirectoryPath = Path.Combine(clonedExtractionRootPath, relativeTaskDataDirectoryPath);
+        var clonedTaskDataXmlPath = Path.Combine(clonedTaskDataDirectoryPath, Path.GetFileName(sourcePackage.TaskDataXmlPath));
+
+        return new IsoXmlTaskDataPackage(sourcePackage.PackagePath, clonedExtractionRootPath, clonedTaskDataDirectoryPath, clonedTaskDataXmlPath);
+    }
+
+    private static void CopyDirectory(string sourceDirectoryPath, string destinationDirectoryPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceDirectoryPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationDirectoryPath);
+
+        Directory.CreateDirectory(destinationDirectoryPath);
+
+        foreach (var filePath in Directory.EnumerateFiles(sourceDirectoryPath))
+        {
+            var destinationFilePath = Path.Combine(destinationDirectoryPath, Path.GetFileName(filePath));
+            File.Copy(filePath, destinationFilePath, overwrite: true);
+        }
+
+        foreach (var directoryPath in Directory.EnumerateDirectories(sourceDirectoryPath))
+        {
+            var destinationChildDirectoryPath = Path.Combine(destinationDirectoryPath, Path.GetFileName(directoryPath));
+            CopyDirectory(directoryPath, destinationChildDirectoryPath);
+        }
     }
 }

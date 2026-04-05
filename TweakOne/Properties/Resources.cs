@@ -35,6 +35,7 @@ internal static class Resources
     public static string CloneAsIsButton => GetString(nameof(CloneAsIsButton));
     public static string CloneWithAutoTranslationButton => GetString(nameof(CloneWithAutoTranslationButton));
     public static string DeleteSelectedTargetGuidanceButton => GetString(nameof(DeleteSelectedTargetGuidanceButton));
+    public static string UseSourceAsTargetButton => GetString(nameof(UseSourceAsTargetButton));
     public static string AutoTranslationDescription => GetString(nameof(AutoTranslationDescription));
     public static string RectificationControlsHeader => GetString(nameof(RectificationControlsHeader));
     public static string RectificationDesignatorLabel => GetString(nameof(RectificationDesignatorLabel));
@@ -77,10 +78,13 @@ internal static class Resources
     public static string RectifiedGuidancePathFormat => GetString(nameof(RectifiedGuidancePathFormat));
     public static string RectifiedPositiveGuidancePathFormat => GetString(nameof(RectifiedPositiveGuidancePathFormat));
     public static string RectifiedNegativeGuidancePathFormat => GetString(nameof(RectifiedNegativeGuidancePathFormat));
+    public static string RectifiedPositiveSmoothedGuidancePathFormat => GetString(nameof(RectifiedPositiveSmoothedGuidancePathFormat));
+    public static string RectifiedNegativeSmoothedGuidancePathFormat => GetString(nameof(RectifiedNegativeSmoothedGuidancePathFormat));
     public static string PositiveDirectionLabel => GetString(nameof(PositiveDirectionLabel));
     public static string NegativeDirectionLabel => GetString(nameof(NegativeDirectionLabel));
     public static string RectificationCandidateSummaryFormat => GetString(nameof(RectificationCandidateSummaryFormat));
     public static string RectificationAcceptedSummaryFormat => GetString(nameof(RectificationAcceptedSummaryFormat));
+    public static string RectificationTwoPassSummaryFormat => GetString(nameof(RectificationTwoPassSummaryFormat));
     public static string RectificationRejectedSummaryFormat => GetString(nameof(RectificationRejectedSummaryFormat));
     public static string PackageNotFound => GetString(nameof(PackageNotFound));
     public static string PackageMissingTaskDataXml => GetString(nameof(PackageMissingTaskDataXml));
