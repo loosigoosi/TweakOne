@@ -40,6 +40,8 @@ internal sealed class MainWindowViewModel : ObservableObject
     private double _rectificationOffsetMeters = 0.75d;
     private int _rectificationRowCount = 4;
     private double _rectificationToleranceMeters = 0.10d;
+    private IsoXmlGuidanceRectificationPassSelectionMode _rectificationPassSelectionMode = IsoXmlGuidanceRectificationPassSelectionMode.Automatic;
+    private int _rectificationManualPassCount = 2;
     private double _rectificationSourcePreviewZoom = 1d;
     private double _rectificationTargetPreviewZoom = 1d;
     private double _rectificationSourcePreviewOffsetX;
@@ -63,6 +65,8 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<PreviewPolylineViewModel> RectificationTargetPreviewShapes { get; } = new();
 
+    public IReadOnlyList<int> RectificationManualPassCounts { get; } = Enumerable.Range(1, IsoXmlGuidanceRectificationService.MaximumManualPassCount).ToArray();
+
     public string? SourceFilePath
     {
         get => _sourceFilePath;
@@ -83,6 +87,47 @@ internal sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _targetFilePath, value))
             {
                 OnPropertyChanged(nameof(TargetFilePathDisplay));
+            }
+        }
+    }
+
+    public bool IsRectificationPassModeAutomatic
+    {
+        get => _rectificationPassSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Automatic;
+        set
+        {
+            if (value)
+            {
+                SetRectificationPassSelectionMode(IsoXmlGuidanceRectificationPassSelectionMode.Automatic);
+            }
+        }
+    }
+
+    public bool IsRectificationPassModeManual
+    {
+        get => _rectificationPassSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Manual;
+        set
+        {
+            if (value)
+            {
+                SetRectificationPassSelectionMode(IsoXmlGuidanceRectificationPassSelectionMode.Manual);
+            }
+        }
+    }
+
+    public bool IsRectificationManualPassCountEnabled => _rectificationPassSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Manual;
+
+    public bool IsRectificationAutomaticPassCountVisible => _rectificationPassSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Automatic;
+
+    public int RectificationManualPassCount
+    {
+        get => _rectificationManualPassCount;
+        set
+        {
+            var clampedValue = Math.Clamp(value, RectificationManualPassCounts[0], RectificationManualPassCounts[^1]);
+            if (SetProperty(ref _rectificationManualPassCount, clampedValue))
+            {
+                InvalidateRectificationResult();
             }
         }
     }
@@ -385,6 +430,22 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public string RectificationApplicationOffsetDisplay => (RectificationOffsetMeters * RectificationRowCount).ToString("0.##");
 
+    public string RectificationAutomaticPassCountDisplay
+    {
+        get
+        {
+            if (_currentRectificationResult is null)
+            {
+                return Strings.RectificationAutomaticPassCountNotAnalyzed;
+            }
+
+            var requiredPassCount = _currentRectificationResult.Candidates.Max(candidate => candidate.RequiredPassCount);
+            return requiredPassCount <= IsoXmlGuidanceRectificationService.MaximumAutomaticPassCount
+                ? Strings.FormatRectificationAutomaticPassCount(requiredPassCount)
+                : Strings.FormatRectificationAutomaticPassCountUnsupported(requiredPassCount, IsoXmlGuidanceRectificationService.MaximumAutomaticPassCount);
+        }
+    }
+
     public string StatusMessage
     {
         get => _statusMessage;
@@ -485,10 +546,13 @@ internal sealed class MainWindowViewModel : ObservableObject
             RectificationOffsetMeters,
             RectificationRowCount,
             RectificationToleranceMeters,
-            GetRectificationDesignator(source));
+            GetRectificationDesignator(source),
+            _rectificationPassSelectionMode,
+            RectificationManualPassCount);
 
         _currentRectificationResult = result;
         RectificationResultDisplay = string.Join(Environment.NewLine, result.Candidates.Select(CreateRectificationCandidateSummary));
+        OnPropertyChanged(nameof(RectificationAutomaticPassCountDisplay));
         RefreshRectificationTargetPreview();
         OnPropertyChanged(nameof(CanApplyRectification));
         StatusMessage = RectificationResultDisplay;
@@ -548,13 +612,27 @@ internal sealed class MainWindowViewModel : ObservableObject
             : RectificationDesignator.Trim();
     }
 
+    private void SetRectificationPassSelectionMode(IsoXmlGuidanceRectificationPassSelectionMode value)
+    {
+        if (SetProperty(ref _rectificationPassSelectionMode, value, nameof(IsRectificationPassModeAutomatic)))
+        {
+            OnPropertyChanged(nameof(IsRectificationPassModeAutomatic));
+            OnPropertyChanged(nameof(IsRectificationPassModeManual));
+            OnPropertyChanged(nameof(IsRectificationManualPassCountEnabled));
+            OnPropertyChanged(nameof(IsRectificationAutomaticPassCountVisible));
+            InvalidateRectificationResult();
+        }
+    }
+
     private string CreateRectificationCandidateSummary(IsoXmlGuidanceRectificationCandidateResult candidate)
     {
+        var desiredOffset = Math.Abs(candidate.SignedApplicationOffsetMeters);
         var detail = candidate.Mode switch
         {
-            IsoXmlGuidanceRectificationMode.Standard => Strings.FormatRectificationAcceptedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters),
-            IsoXmlGuidanceRectificationMode.TwoPass => Strings.FormatRectificationTwoPassSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters, candidate.ExcessDeviationMeters, candidate.ExcessDeviationMeters / 2d),
-            _ => Strings.FormatRectificationRejectedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, RectificationOffsetMeters, RectificationToleranceMeters, candidate.MaxDeviationMeters)
+            IsoXmlGuidanceRectificationMode.Standard => Strings.FormatRectificationAcceptedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, desiredOffset, RectificationToleranceMeters, candidate.MaxDeviationMeters),
+            IsoXmlGuidanceRectificationMode.TwoPass => Strings.FormatRectificationTwoPassSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, desiredOffset, RectificationToleranceMeters, candidate.MaxDeviationMeters, candidate.ExcessDeviationMeters, candidate.ExcessDeviationMeters / 2d),
+            IsoXmlGuidanceRectificationMode.MultiPass => Strings.FormatRectificationMultiPassSummary(candidate.GeneratedLines.Count, candidate.MinDistanceMeters, candidate.MaxDistanceMeters, desiredOffset, RectificationToleranceMeters, candidate.MaxDeviationMeters, candidate.ExcessDeviationMeters, candidate.ExcessDeviationMeters / candidate.GeneratedLines.Count),
+            _ => Strings.FormatRectificationRejectedSummary(candidate.MinDistanceMeters, candidate.MaxDistanceMeters, desiredOffset, RectificationToleranceMeters, candidate.MaxDeviationMeters)
         };
 
         var directionLabel = candidate.SignedApplicationOffsetMeters >= 0d
@@ -674,11 +752,12 @@ internal sealed class MainWindowViewModel : ObservableObject
         var usesPositiveDirection = candidate.SignedApplicationOffsetMeters >= 0d;
         for (var index = 0; index < candidate.GeneratedLines.Count; index++)
         {
+            var isFinalPass = index == (candidate.GeneratedLines.Count - 1);
             yield return new PreviewOverlay(
                 candidate.GeneratedLines[index],
-                candidate.Mode == IsoXmlGuidanceRectificationMode.TwoPass && index == 0
-                    ? usesPositiveDirection ? Brushes.MediumSeaGreen : Brushes.DarkOliveGreen
-                    : usesPositiveDirection ? Brushes.LimeGreen : Brushes.YellowGreen);
+                isFinalPass
+                    ? usesPositiveDirection ? Brushes.LimeGreen : Brushes.YellowGreen
+                    : usesPositiveDirection ? Brushes.MediumSeaGreen : Brushes.DarkOliveGreen);
         }
     }
 
@@ -686,6 +765,7 @@ internal sealed class MainWindowViewModel : ObservableObject
     {
         _currentRectificationResult = null;
         RectificationResultDisplay = Strings.RectificationResultNotAnalyzed;
+        OnPropertyChanged(nameof(RectificationAutomaticPassCountDisplay));
         RefreshRectificationTargetPreview();
         OnPropertyChanged(nameof(CanApplyRectification));
     }

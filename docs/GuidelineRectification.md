@@ -21,14 +21,14 @@ A rectification analysis result containing:
 - whether each candidate is acceptable,
 - minimum distance from the source polyline to each candidate analysis line,
 - maximum distance from the source polyline to each candidate analysis line,
-- maximum absolute deviation from the row spacing.
+- maximum absolute deviation from the machine-width offset.
 
 ## Functional behavior
 1. Fit a straight regression line to the source polyline.
-2. Build two parallel analysis lines at `+rowSpacing` and `-rowSpacing` from the regression line.
-3. Evaluate each analysis line against the source polyline.
-4. Accept an analysis direction only when every measured distance from the source polyline to that analysis line remains within `rowSpacing ± tolerance`.
-5. Compute the applied machine-width offset as `rowCount × rowSpacing`.
+2. Compute the applied machine-width offset as `rowCount × rowSpacing`.
+3. Build two parallel analysis lines at `+applicationOffset` and `-applicationOffset` from the regression line.
+4. Evaluate each analysis line against the source polyline.
+5. Accept an analysis direction only when every measured distance from the source polyline to that analysis line remains within `applicationOffset ± tolerance`.
 6. Build two final guidance lines at `+applicationOffset` and `-applicationOffset` from the regression line.
 7. Keep the generated A and B endpoints aligned on the normals of the analyzed regression line so all produced lines share the same longitudinal extents.
 8. Allow the user to apply both accepted final guidance lines to the target field, then delete the unneeded one.
@@ -39,14 +39,14 @@ A rectification analysis result containing:
 
 ## Acceptance rule
 The rectified straight line is acceptable only when:
-- `minDistance >= rowSpacing - tolerance`, and
-- `maxDistance <= rowSpacing + tolerance`.
+- `minDistance >= applicationOffset - tolerance`, and
+- `maxDistance <= applicationOffset + tolerance`.
 
 ## Current scope
 - Works on ISOXML v3 guidance lines.
 - Focuses on offline post-processing, not on-the-fly tractor guidance.
 - Uses the target field only as the destination context for the generated guidance lines; rectification itself does not clip or truncate the generated A-B extents.
-- Validates using row spacing, then applies machine-width offset as `rowCount × rowSpacing`.
+- Validates using machine-width offset computed as `rowCount × rowSpacing`.
 - Generates both machine-width directions so the user can delete the one that is not needed.
 - Uses a two-pass fallback when the excess deviation is positive but still less than `2 × tolerance`.
 

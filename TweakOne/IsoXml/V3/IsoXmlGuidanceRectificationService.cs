@@ -10,6 +10,9 @@ namespace TweakOne.IsoXml.V3;
 /// </summary>
 public sealed class IsoXmlGuidanceRectificationService
 {
+    public const int MaximumAutomaticPassCount = 6;
+    public const int MaximumManualPassCount = 100;
+
     private const double EarthRadiusMeters = 6378137d;
     private static readonly LocalizedStrings Strings = LocalizedStrings.Instance;
     private readonly IsoXmlGuidancePathGenerator _generator = new();
@@ -17,7 +20,7 @@ public sealed class IsoXmlGuidanceRectificationService
     /// <summary>
     /// Builds and evaluates straight rectified guidance line candidates for both offset directions.
     /// </summary>
-    public IsoXmlGuidanceRectificationResult AnalyzeRectification(IsoXmlPartfield targetPartfield, IsoXmlLineString sourceLineString, double rowSpacingMeters, int rowCount, double toleranceMeters, string? designator = null)
+    public IsoXmlGuidanceRectificationResult AnalyzeRectification(IsoXmlPartfield targetPartfield, IsoXmlLineString sourceLineString, double rowSpacingMeters, int rowCount, double toleranceMeters, string? designator = null, IsoXmlGuidanceRectificationPassSelectionMode passSelectionMode = IsoXmlGuidanceRectificationPassSelectionMode.Automatic, int manualPassCount = 2)
     {
         ArgumentNullException.ThrowIfNull(targetPartfield);
         ArgumentNullException.ThrowIfNull(sourceLineString);
@@ -47,6 +50,11 @@ public sealed class IsoXmlGuidanceRectificationService
             throw new ArgumentOutOfRangeException(nameof(toleranceMeters), Strings.RectificationTolerancePositiveError);
         }
 
+        if (manualPassCount is < 1 or > MaximumManualPassCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(manualPassCount), Strings.FormatRectificationPassCountRangeError(1, MaximumManualPassCount));
+        }
+
         var referenceLatitudeRadians = DegreesToRadians(sourceLineString.Points.Average(static point => point.North));
         var cosLatitude = Math.Cos(referenceLatitudeRadians);
         if (Math.Abs(cosLatitude) < double.Epsilon)
@@ -55,12 +63,10 @@ public sealed class IsoXmlGuidanceRectificationService
         }
 
         var projectedSourcePoints = sourceLineString.Points.Select(point => Project(point, cosLatitude)).ToArray();
-        var centroid = new ProjectedPoint(projectedSourcePoints.Average(static point => point.X), projectedSourcePoints.Average(static point => point.Y));
-        var direction = ComputePrincipalDirection(projectedSourcePoints, centroid);
         var applicationOffsetMeters = rowSpacingMeters * rowCount;
 
-        var positiveCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, centroid, direction, rowSpacingMeters, applicationOffsetMeters, toleranceMeters, cosLatitude, GetPositiveDesignator(sourceLineString, designator));
-        var negativeCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, centroid, direction, -rowSpacingMeters, -applicationOffsetMeters, toleranceMeters, cosLatitude, GetNegativeDesignator(sourceLineString, designator));
+        var positiveCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, applicationOffsetMeters, toleranceMeters, cosLatitude, GetPositiveDesignator(sourceLineString, designator), passSelectionMode, manualPassCount);
+        var negativeCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, -applicationOffsetMeters, toleranceMeters, cosLatitude, GetNegativeDesignator(sourceLineString, designator), passSelectionMode, manualPassCount);
 
         return new IsoXmlGuidanceRectificationResult(rowSpacingMeters, rowCount, applicationOffsetMeters, toleranceMeters, new[] { positiveCandidate.ToResult(), negativeCandidate.ToResult() });
     }
@@ -68,86 +74,154 @@ public sealed class IsoXmlGuidanceRectificationService
     private RectificationCandidateEvaluation EvaluateCandidate(
         IsoXmlLineString sourceLineString,
         IReadOnlyList<ProjectedPoint> projectedSourcePoints,
-        ProjectedPoint centroid,
-        ProjectedPoint direction,
-        double signedAnalysisOffsetMeters,
-        double signedApplicationOffsetMeters,
+        double signedStepOffsetMeters,
         double toleranceMeters,
         double cosLatitude,
-        string? designator)
+        string? designator,
+        IsoXmlGuidanceRectificationPassSelectionMode passSelectionMode,
+        int manualPassCount)
     {
-        var analysisCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, centroid, direction, signedAnalysisOffsetMeters, cosLatitude, designator);
-        var projectedAnalysisStart = Project(analysisCandidate.Points[0], cosLatitude);
-        var projectedAnalysisEnd = Project(analysisCandidate.Points[1], cosLatitude);
-        var analysisDirectionVector = new ProjectedPoint(projectedAnalysisEnd.X - projectedAnalysisStart.X, projectedAnalysisEnd.Y - projectedAnalysisStart.Y);
+        var initialAnalysis = AnalyzeProjectedPolyline(projectedSourcePoints);
+        var maxDeviation = initialAnalysis.MaxDeviationMeters;
+        var excessDeviation = Math.Max(0d, maxDeviation - toleranceMeters);
+        var requiredPassCount = DetermineAutomaticPassCount(maxDeviation, toleranceMeters);
 
-        var outputCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, centroid, direction, signedApplicationOffsetMeters, cosLatitude, designator);
+        var selectedPassCount = passSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Manual
+            ? manualPassCount
+            : requiredPassCount;
 
-        var distances = projectedSourcePoints
-            .Select(point => DistanceToInfiniteLine(point, projectedAnalysisStart, analysisDirectionVector))
-            .ToArray();
+        var finalDesiredOffsetMeters = Math.Abs(signedStepOffsetMeters * selectedPassCount);
 
-        var minDistance = distances.Min();
-        var maxDistance = distances.Max();
-        var desiredOffset = Math.Abs(signedAnalysisOffsetMeters);
-        var maxDeviation = distances.Max(distance => Math.Abs(distance - desiredOffset));
-        var lowerExcess = Math.Max(0d, (desiredOffset - toleranceMeters) - minDistance);
-        var upperExcess = Math.Max(0d, maxDistance - (desiredOffset + toleranceMeters));
-        var excessDeviation = Math.Max(lowerExcess, upperExcess);
-        var isAccepted = excessDeviation <= double.Epsilon;
-
-        if (isAccepted)
+        if (selectedPassCount == 1)
         {
-            return new RectificationCandidateEvaluation(
-                outputCandidate,
-                signedApplicationOffsetMeters,
-                true,
-                minDistance,
-                maxDistance,
-                maxDeviation,
-                excessDeviation,
-                IsoXmlGuidanceRectificationMode.Standard,
-                new[] { outputCandidate });
+            var outputCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, initialAnalysis.Centroid, initialAnalysis.Direction, signedStepOffsetMeters, cosLatitude, designator);
+            var metrics = MeasureCandidate(projectedSourcePoints, outputCandidate, cosLatitude, finalDesiredOffsetMeters);
+            return CreateStandardEvaluation(outputCandidate, signedStepOffsetMeters, requiredPassCount, metrics.MinDistanceMeters, metrics.MaxDistanceMeters, metrics.MaxDeviationMeters, excessDeviation);
         }
 
-        if (excessDeviation < (toleranceMeters * 2d))
-        {
-            var smoothedCandidate = BuildSmoothedTransitionLine(
-                sourceLineString,
-                projectedSourcePoints,
-                centroid,
-                direction,
-                signedApplicationOffsetMeters,
-                cosLatitude,
-                signedApplicationOffsetMeters >= 0d
-                    ? GetPositiveSmoothedDesignator(sourceLineString, designator)
-                    : GetNegativeSmoothedDesignator(sourceLineString, designator));
+        return CreateProgressiveEvaluation(
+            sourceLineString,
+            projectedSourcePoints,
+            signedStepOffsetMeters,
+            toleranceMeters,
+            cosLatitude,
+            designator,
+            maxDeviation,
+            excessDeviation,
+            selectedPassCount,
+            requiredPassCount,
+            passSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Manual ? MaximumManualPassCount : MaximumAutomaticPassCount);
+    }
 
-            return new RectificationCandidateEvaluation(
-                outputCandidate,
-                signedApplicationOffsetMeters,
-                true,
-                minDistance,
-                maxDistance,
-                maxDeviation,
-                excessDeviation,
-                IsoXmlGuidanceRectificationMode.TwoPass,
-                new[] { smoothedCandidate, outputCandidate });
-        }
-
+    private static RectificationCandidateEvaluation CreateStandardEvaluation(IsoXmlLineString outputCandidate, double signedApplicationOffsetMeters, int requiredPassCount, double minDistance, double maxDistance, double maxDeviation, double excessDeviation)
+    {
+        var isAccepted = requiredPassCount == 1;
         return new RectificationCandidateEvaluation(
             outputCandidate,
             signedApplicationOffsetMeters,
-            false,
+            requiredPassCount,
+            isAccepted,
             minDistance,
             maxDistance,
             maxDeviation,
             excessDeviation,
-            IsoXmlGuidanceRectificationMode.Rejected,
-            Array.Empty<IsoXmlLineString>());
+            isAccepted ? IsoXmlGuidanceRectificationMode.Standard : IsoXmlGuidanceRectificationMode.Rejected,
+            isAccepted ? new[] { outputCandidate } : Array.Empty<IsoXmlLineString>());
     }
 
-    private IsoXmlLineString BuildCandidateLine(IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, ProjectedPoint centroid, ProjectedPoint direction, double signedOffsetMeters, double cosLatitude, string? designator)
+    private static RectificationCandidateEvaluation CreateProgressiveEvaluation(IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, double signedStepOffsetMeters, double toleranceMeters, double cosLatitude, string? designator, double maxDeviation, double excessDeviation, int passCount, int requiredPassCount, int supportedPassCountLimit)
+    {
+        var effectivePassCount = Math.Min(passCount, supportedPassCountLimit);
+        var signedFinalOffsetMeters = signedStepOffsetMeters * effectivePassCount;
+        var fallbackAnalysis = AnalyzeProjectedPolyline(projectedSourcePoints);
+        var fallbackCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, fallbackAnalysis.Centroid, fallbackAnalysis.Direction, signedFinalOffsetMeters, cosLatitude, designator);
+
+        if (!CanUsePassCount(requiredPassCount, passCount, supportedPassCountLimit))
+        {
+            var fallbackMetrics = MeasureCandidate(projectedSourcePoints, fallbackCandidate, cosLatitude, Math.Abs(signedFinalOffsetMeters));
+            return new RectificationCandidateEvaluation(
+                fallbackCandidate,
+                signedFinalOffsetMeters,
+                requiredPassCount,
+                false,
+                fallbackMetrics.MinDistanceMeters,
+                fallbackMetrics.MaxDistanceMeters,
+                maxDeviation,
+                excessDeviation,
+                IsoXmlGuidanceRectificationMode.Rejected,
+                Array.Empty<IsoXmlLineString>());
+        }
+
+        var generatedLines = new List<IsoXmlLineString>(effectivePassCount);
+        var currentPoints = projectedSourcePoints.ToArray();
+        for (var passIndex = 1; passIndex < effectivePassCount; passIndex++)
+        {
+            var currentAnalysis = AnalyzeProjectedPolyline(currentPoints);
+            var remainingSmoothingPassCount = effectivePassCount - passIndex;
+            var targetResidualDeviation = remainingSmoothingPassCount <= 0
+                ? 0d
+                : toleranceMeters + ((currentAnalysis.MaxDeviationMeters - toleranceMeters) * ((remainingSmoothingPassCount - 1d) / remainingSmoothingPassCount));
+            var residualFactor = currentAnalysis.MaxDeviationMeters <= double.Epsilon
+                ? 0d
+                : Math.Clamp(targetResidualDeviation / currentAnalysis.MaxDeviationMeters, 0d, 1d);
+            var smoothingLine = BuildProgressiveTransitionLine(
+                sourceLineString,
+                currentAnalysis.Entries,
+                currentAnalysis.Centroid,
+                currentAnalysis.Direction,
+                signedStepOffsetMeters,
+                residualFactor,
+                cosLatitude,
+                GetProgressiveDesignator(sourceLineString, designator, signedStepOffsetMeters >= 0d, passIndex, effectivePassCount));
+
+            generatedLines.Add(smoothingLine);
+            currentPoints = smoothingLine.Points.Select(point => Project(point, cosLatitude)).ToArray();
+        }
+
+        var finalAnalysis = AnalyzeProjectedPolyline(currentPoints);
+        var outputCandidate = BuildCandidateLine(sourceLineString, currentPoints, finalAnalysis.Centroid, finalAnalysis.Direction, signedStepOffsetMeters, cosLatitude, designator);
+        generatedLines.Add(outputCandidate);
+        var finalMetrics = MeasureCandidate(projectedSourcePoints, outputCandidate, cosLatitude, Math.Abs(signedFinalOffsetMeters));
+
+        return new RectificationCandidateEvaluation(
+            outputCandidate,
+            signedFinalOffsetMeters,
+            requiredPassCount,
+            true,
+            finalMetrics.MinDistanceMeters,
+            finalMetrics.MaxDistanceMeters,
+            maxDeviation,
+            excessDeviation,
+            effectivePassCount == 2 ? IsoXmlGuidanceRectificationMode.TwoPass : IsoXmlGuidanceRectificationMode.MultiPass,
+            generatedLines);
+    }
+
+    private static int DetermineAutomaticPassCount(double maxDeviation, double toleranceMeters)
+    {
+        if (maxDeviation <= toleranceMeters + double.Epsilon)
+        {
+            return 1;
+        }
+
+        if (toleranceMeters <= double.Epsilon)
+        {
+            return MaximumAutomaticPassCount + 1;
+        }
+
+        return Math.Max(2, (int)Math.Ceiling(maxDeviation / toleranceMeters));
+    }
+
+    private static bool CanUsePassCount(int requiredPassCount, int passCount, int supportedPassCountLimit)
+    {
+        if (passCount < 1 || passCount > supportedPassCountLimit)
+        {
+            return false;
+        }
+
+        return requiredPassCount <= passCount;
+    }
+
+    private static IsoXmlLineString BuildCandidateLine(IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, ProjectedPoint centroid, ProjectedPoint direction, double signedOffsetMeters, double cosLatitude, string? designator)
     {
         var normal = new ProjectedPoint(-direction.Y, direction.X);
         var extents = projectedSourcePoints.Select(point => Dot(Subtract(point, centroid), direction)).ToArray();
@@ -169,43 +243,68 @@ public sealed class IsoXmlGuidanceRectificationService
         };
     }
 
-    private static IsoXmlLineString BuildSmoothedTransitionLine(
+    private static IsoXmlLineString BuildProgressiveTransitionLine(
         IsoXmlLineString sourceLineString,
-        IReadOnlyList<ProjectedPoint> projectedSourcePoints,
+        IReadOnlyList<ProjectedPointAnalysis> projectedPointAnalyses,
         ProjectedPoint centroid,
         ProjectedPoint direction,
         double signedApplicationOffsetMeters,
+        double residualFactor,
         double cosLatitude,
         string? designator)
     {
-        var normal = new ProjectedPoint(-direction.Y, direction.X);
         var smoothedLine = new IsoXmlLineString
         {
             Type = IsoXmlLineString.GuidancePathType,
             Designator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator : designator
         };
 
-        foreach (var point in projectedSourcePoints
-                     .Select(projectedPoint =>
-                     {
-                         var relative = Subtract(projectedPoint, centroid);
-                         return new
-                         {
-                             Point = projectedPoint,
-                             LongitudinalOffset = Dot(relative, direction),
-                             LateralOffset = Dot(relative, normal)
-                         };
-                     })
-                     .OrderBy(static entry => entry.LongitudinalOffset))
+        foreach (var point in projectedPointAnalyses)
         {
-            var smoothedLateralOffset = (signedApplicationOffsetMeters + point.LateralOffset) / 2d;
+            var smoothedLateralOffset = signedApplicationOffsetMeters + (point.LateralOffset * residualFactor);
             var smoothedPoint = Add(
                 Add(centroid, new ProjectedPoint(direction.X * point.LongitudinalOffset, direction.Y * point.LongitudinalOffset)),
-                new ProjectedPoint(normal.X * smoothedLateralOffset, normal.Y * smoothedLateralOffset));
+                new ProjectedPoint((-direction.Y) * smoothedLateralOffset, direction.X * smoothedLateralOffset));
             smoothedLine.Points.Add(ToIsoPoint(smoothedPoint, cosLatitude));
         }
 
         return smoothedLine;
+    }
+
+    private static PolylineRegressionAnalysis AnalyzeProjectedPolyline(IReadOnlyList<ProjectedPoint> projectedPoints)
+    {
+        var centroid = new ProjectedPoint(projectedPoints.Average(static point => point.X), projectedPoints.Average(static point => point.Y));
+        var direction = ComputePrincipalDirection(projectedPoints, centroid);
+        var normal = new ProjectedPoint(-direction.Y, direction.X);
+        var entries = projectedPoints
+            .Select(projectedPoint =>
+            {
+                var relative = Subtract(projectedPoint, centroid);
+                return new ProjectedPointAnalysis(projectedPoint, Dot(relative, direction), Dot(relative, normal));
+            })
+            .OrderBy(static entry => entry.LongitudinalOffset)
+            .ToArray();
+
+        return new PolylineRegressionAnalysis(
+            centroid,
+            direction,
+            entries,
+            entries.Max(static entry => Math.Abs(entry.LateralOffset)));
+    }
+
+    private static CandidateMetrics MeasureCandidate(IReadOnlyList<ProjectedPoint> projectedSourcePoints, IsoXmlLineString candidateLine, double cosLatitude, double desiredOffsetMeters)
+    {
+        var projectedAnalysisStart = Project(candidateLine.Points[0], cosLatitude);
+        var projectedAnalysisEnd = Project(candidateLine.Points[1], cosLatitude);
+        var analysisDirectionVector = new ProjectedPoint(projectedAnalysisEnd.X - projectedAnalysisStart.X, projectedAnalysisEnd.Y - projectedAnalysisStart.Y);
+        var distances = projectedSourcePoints
+            .Select(point => DistanceToInfiniteLine(point, projectedAnalysisStart, analysisDirectionVector))
+            .ToArray();
+
+        return new CandidateMetrics(
+            distances.Min(),
+            distances.Max(),
+            distances.Max(distance => Math.Abs(distance - desiredOffsetMeters)));
     }
 
     private static string GetPositiveDesignator(IsoXmlLineString sourceLineString, string? designator)
@@ -220,16 +319,12 @@ public sealed class IsoXmlGuidanceRectificationService
         return Strings.FormatNegativeRectifiedGuidanceDesignator(baseDesignator);
     }
 
-    private static string GetPositiveSmoothedDesignator(IsoXmlLineString sourceLineString, string? designator)
+    private static string GetProgressiveDesignator(IsoXmlLineString sourceLineString, string? designator, bool usesPositiveDirection, int passIndex, int passCount)
     {
         var baseDesignator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator ?? Strings.GuidancePathDefaultName : designator;
-        return Strings.FormatPositiveSmoothedGuidanceDesignator(baseDesignator);
-    }
-
-    private static string GetNegativeSmoothedDesignator(IsoXmlLineString sourceLineString, string? designator)
-    {
-        var baseDesignator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator ?? Strings.GuidancePathDefaultName : designator;
-        return Strings.FormatNegativeSmoothedGuidanceDesignator(baseDesignator);
+        return usesPositiveDirection
+            ? Strings.FormatPositiveProgressiveGuidanceDesignator(baseDesignator, passIndex, passCount)
+            : Strings.FormatNegativeProgressiveGuidanceDesignator(baseDesignator, passIndex, passCount);
     }
 
     private static ProjectedPoint ComputePrincipalDirection(IReadOnlyList<ProjectedPoint> points, ProjectedPoint centroid)
@@ -309,6 +404,7 @@ public sealed class IsoXmlGuidanceRectificationService
     private readonly record struct RectificationCandidateEvaluation(
         IsoXmlLineString CandidateLine,
         double SignedApplicationOffsetMeters,
+        int RequiredPassCount,
         bool IsAccepted,
         double MinDistanceMeters,
         double MaxDistanceMeters,
@@ -319,9 +415,15 @@ public sealed class IsoXmlGuidanceRectificationService
     {
         public IsoXmlGuidanceRectificationCandidateResult ToResult()
         {
-            return new IsoXmlGuidanceRectificationCandidateResult(CandidateLine, SignedApplicationOffsetMeters, IsAccepted, MinDistanceMeters, MaxDistanceMeters, MaxDeviationMeters, ExcessDeviationMeters, Mode, GeneratedLines);
+            return new IsoXmlGuidanceRectificationCandidateResult(CandidateLine, SignedApplicationOffsetMeters, RequiredPassCount, IsAccepted, MinDistanceMeters, MaxDistanceMeters, MaxDeviationMeters, ExcessDeviationMeters, Mode, GeneratedLines);
         }
     }
+
+    private readonly record struct CandidateMetrics(double MinDistanceMeters, double MaxDistanceMeters, double MaxDeviationMeters);
+
+    private readonly record struct ProjectedPointAnalysis(ProjectedPoint Point, double LongitudinalOffset, double LateralOffset);
+
+    private readonly record struct PolylineRegressionAnalysis(ProjectedPoint Centroid, ProjectedPoint Direction, IReadOnlyList<ProjectedPointAnalysis> Entries, double MaxDeviationMeters);
 
     private readonly record struct ProjectedPoint(double X, double Y);
 }
@@ -382,10 +484,11 @@ public sealed class IsoXmlGuidanceRectificationCandidateResult
     /// <summary>
     /// Initializes a new instance of the <see cref="IsoXmlGuidanceRectificationCandidateResult"/> class.
     /// </summary>
-    public IsoXmlGuidanceRectificationCandidateResult(IsoXmlLineString candidateLine, double signedApplicationOffsetMeters, bool isAccepted, double minDistanceMeters, double maxDistanceMeters, double maxDeviationMeters, double excessDeviationMeters, IsoXmlGuidanceRectificationMode mode, IReadOnlyList<IsoXmlLineString> generatedLines)
+    public IsoXmlGuidanceRectificationCandidateResult(IsoXmlLineString candidateLine, double signedApplicationOffsetMeters, int requiredPassCount, bool isAccepted, double minDistanceMeters, double maxDistanceMeters, double maxDeviationMeters, double excessDeviationMeters, IsoXmlGuidanceRectificationMode mode, IReadOnlyList<IsoXmlLineString> generatedLines)
     {
         CandidateLine = candidateLine ?? throw new ArgumentNullException(nameof(candidateLine));
         SignedApplicationOffsetMeters = signedApplicationOffsetMeters;
+        RequiredPassCount = requiredPassCount;
         IsAccepted = isAccepted;
         MinDistanceMeters = minDistanceMeters;
         MaxDistanceMeters = maxDistanceMeters;
@@ -404,6 +507,11 @@ public sealed class IsoXmlGuidanceRectificationCandidateResult
     /// Gets the signed applied machine-width offset in meters.
     /// </summary>
     public double SignedApplicationOffsetMeters { get; }
+
+    /// <summary>
+    /// Gets the number of passes required by the current rectification criterion for this direction.
+    /// </summary>
+    public int RequiredPassCount { get; }
 
     /// <summary>
     /// Gets a value indicating whether the candidate line respects the offset tolerance envelope.
@@ -448,5 +556,15 @@ public enum IsoXmlGuidanceRectificationMode
 {
     Rejected = 0,
     Standard = 1,
-    TwoPass = 2
+    TwoPass = 2,
+    MultiPass = 3
+}
+
+/// <summary>
+/// Describes how the number of rectification passes is chosen.
+/// </summary>
+public enum IsoXmlGuidanceRectificationPassSelectionMode
+{
+    Automatic = 0,
+    Manual = 1
 }

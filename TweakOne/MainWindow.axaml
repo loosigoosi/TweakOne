@@ -275,29 +275,63 @@
                     </Border>
 
                     <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0" Width="280">
-                        <StackPanel VerticalAlignment="Center" Spacing="12">
-                            <Button Content="{Binding Strings.UseSourceAsTargetButton}" Click="UseSourceAsTarget_Click" IsEnabled="{Binding CanUseSourceAsTarget}" />
-                            <TextBlock Text="{Binding Strings.RectificationControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                            <TextBlock Text="{Binding Strings.RectificationDesignatorLabel}" />
-                            <TextBox Text="{Binding RectificationDesignator}" Watermark="{Binding Strings.RectificationDesignatorWatermark}" />
-                            <TextBlock Text="{Binding Strings.RectificationOffsetMetersLabel}" />
-                            <TextBox Text="{Binding RectificationOffsetMeters}" />
-                            <TextBlock Text="{Binding Strings.RectificationRowCountLabel}" />
-                            <TextBox Text="{Binding RectificationRowCount}" />
-                            <TextBlock Text="{Binding Strings.RectificationApplicationOffsetMetersLabel}" />
-                            <TextBlock Text="{Binding RectificationApplicationOffsetDisplay}" />
-                            <TextBlock Text="{Binding Strings.RectificationToleranceMetersLabel}" />
-                            <TextBox Text="{Binding RectificationToleranceMeters}" />
-                            <Button Content="{Binding Strings.AnalyzeRectificationButton}" Click="AnalyzeRectification_Click" IsEnabled="{Binding CanAnalyzeRectification}" />
-                            <Button Content="{Binding Strings.ApplyRectifiedGuidanceButton}" Click="ApplyRectification_Click" IsEnabled="{Binding CanApplyRectification}" />
-                            <TextBlock Text="{Binding Strings.RectificationResultHeader}" FontWeight="SemiBold" Margin="0,8,0,0" />
-                            <TextBlock Text="{Binding RectificationResultDisplay}" TextWrapping="Wrap" />
-                        </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="{Binding Strings.RectificationControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding Strings.RectificationDesignatorLabel}" />
+                                <TextBox Text="{Binding RectificationDesignator}" Watermark="{Binding Strings.RectificationDesignatorWatermark}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBlock Text="{Binding Strings.RectificationOffsetMetersLabel}" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding RectificationOffsetMeters}" Width="60" HorizontalContentAlignment="Right" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBlock Text="{Binding Strings.RectificationRowCountLabel}" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding RectificationRowCount}" Width="60" HorizontalContentAlignment="Right" />
+                                </Grid>
+                                <TextBlock Text="{Binding Strings.RectificationApplicationOffsetMetersLabel}" />
+                                <TextBlock Text="{Binding RectificationApplicationOffsetDisplay}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBlock Text="{Binding Strings.RectificationToleranceMetersLabel}" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding RectificationToleranceMeters}" Width="60" HorizontalContentAlignment="Right" />
+                                </Grid>
+                                <TextBlock Text="{Binding Strings.RectificationPassModeLabel}" />
+                                <StackPanel Spacing="6">
+                                    <RadioButton Content="{Binding Strings.RectificationPassModeAutomaticLabel}"
+                                                 GroupName="RectificationPassMode"
+                                                 IsChecked="{Binding IsRectificationPassModeAutomatic}" />
+                                    <RadioButton Content="{Binding Strings.RectificationPassModeManualLabel}"
+                                                 GroupName="RectificationPassMode"
+                                                 IsChecked="{Binding IsRectificationPassModeManual}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding Strings.RectificationManualPassCountLabel}"
+                                           IsEnabled="{Binding IsRectificationManualPassCountEnabled}" />
+                                <ComboBox ItemsSource="{Binding RectificationManualPassCounts}"
+                                          SelectedItem="{Binding RectificationManualPassCount}"
+                                          IsEnabled="{Binding IsRectificationManualPassCountEnabled}" />
+                                <TextBlock Text="{Binding Strings.RectificationAutomaticPassCountLabel}"
+                                           IsVisible="{Binding IsRectificationAutomaticPassCountVisible}" />
+                                <TextBlock Text="{Binding RectificationAutomaticPassCountDisplay}"
+                                           IsVisible="{Binding IsRectificationAutomaticPassCountVisible}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Strings.RectificationToleranceGuidance}"
+                                           IsVisible="{Binding IsRectificationAutomaticPassCountVisible}"
+                                           Foreground="Gray"
+                                           TextWrapping="Wrap" />
+                                <Button Content="{Binding Strings.AnalyzeRectificationButton}" Click="AnalyzeRectification_Click" IsEnabled="{Binding CanAnalyzeRectification}" />
+                                <Button Content="{Binding Strings.ApplyRectifiedGuidanceButton}" Click="ApplyRectification_Click" IsEnabled="{Binding CanApplyRectification}" />
+                                <TextBlock Text="{Binding Strings.RectificationResultHeader}" FontWeight="SemiBold" Margin="0,8,0,0" />
+                                <TextBlock Text="{Binding RectificationResultDisplay}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </ScrollViewer>
                     </Border>
 
                     <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12">
                         <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="8">
-                            <TextBlock Text="{Binding Strings.TargetFieldHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <StackPanel Spacing="8">
+                                <Button Content="{Binding Strings.UseSourceAsTargetButton}" Click="UseSourceAsTarget_Click" IsEnabled="{Binding CanUseSourceAsTarget}" />
+                                <TextBlock Text="{Binding Strings.TargetFieldHeader}" FontSize="18" FontWeight="SemiBold" />
+                            </StackPanel>
                             <ComboBox Grid.Row="1"
                                       ItemsSource="{Binding TargetPartfields}"
                                       SelectedItem="{Binding SelectedTargetPartfield}"

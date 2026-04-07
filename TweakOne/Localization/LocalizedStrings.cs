@@ -77,6 +77,20 @@ internal sealed class LocalizedStrings
 
     public string RectificationToleranceMetersLabel => Resources.RectificationToleranceMetersLabel;
 
+    public string RectificationPassModeLabel => Resources.RectificationPassModeLabel;
+
+    public string RectificationPassModeAutomaticLabel => Resources.RectificationPassModeAutomaticLabel;
+
+    public string RectificationPassModeManualLabel => Resources.RectificationPassModeManualLabel;
+
+    public string RectificationManualPassCountLabel => Resources.RectificationManualPassCountLabel;
+
+    public string RectificationAutomaticPassCountLabel => Resources.RectificationAutomaticPassCountLabel;
+
+    public string RectificationAutomaticPassCountNotAnalyzed => Resources.RectificationAutomaticPassCountNotAnalyzed;
+
+    public string RectificationToleranceGuidance => Resources.RectificationToleranceGuidance;
+
     public string AnalyzeRectificationButton => Resources.AnalyzeRectificationButton;
 
     public string ApplyRectifiedGuidanceButton => Resources.ApplyRectifiedGuidanceButton;
@@ -159,13 +173,25 @@ internal sealed class LocalizedStrings
 
     public string FormatNegativeSmoothedGuidanceDesignator(string displayName) => Format(Resources.RectifiedNegativeSmoothedGuidancePathFormat, displayName);
 
+    public string FormatPositiveProgressiveGuidanceDesignator(string displayName, int passIndex, int passCount) => Format(Resources.RectifiedPositiveProgressiveGuidancePathFormat, displayName, passIndex, passCount);
+
+    public string FormatNegativeProgressiveGuidanceDesignator(string displayName, int passIndex, int passCount) => Format(Resources.RectifiedNegativeProgressiveGuidancePathFormat, displayName, passIndex, passCount);
+
     public string FormatRectificationCandidateSummary(string directionLabel, string candidateSummary) => Format(Resources.RectificationCandidateSummaryFormat, directionLabel, candidateSummary);
 
     public string FormatRectificationAcceptedSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation) => Format(Resources.RectificationAcceptedSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation);
 
+    public string FormatRectificationAutomaticPassCount(int passCount) => Format(Resources.RectificationAutomaticPassCountFormat, passCount);
+
+    public string FormatRectificationAutomaticPassCountUnsupported(int passCount, int maximumPassCount) => Format(Resources.RectificationAutomaticPassCountUnsupportedFormat, passCount, maximumPassCount);
+
     public string FormatRectificationTwoPassSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation, double excessDeviation, double smoothingShift) => Format(Resources.RectificationTwoPassSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation, excessDeviation, smoothingShift);
 
+    public string FormatRectificationMultiPassSummary(int passCount, double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation, double excessDeviation, double excessDeviationPerPass) => Format(Resources.RectificationMultiPassSummaryFormat, passCount, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation, excessDeviation, excessDeviationPerPass);
+
     public string FormatRectificationRejectedSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation) => Format(Resources.RectificationRejectedSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation);
+
+    public string FormatRectificationPassCountRangeError(int minimumPassCount, int maximumPassCount) => Format(Resources.RectificationPassCountRangeErrorFormat, minimumPassCount, maximumPassCount);
 
     public string FormatPackageNotFound(string packagePath) => Format(Resources.PackageNotFound, packagePath);
 

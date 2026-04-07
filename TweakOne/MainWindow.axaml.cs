@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -91,8 +92,13 @@ public partial class MainWindow : Window
                 throw new InvalidOperationException(Strings.NoSourceFileLoaded);
             }
 
+            var selectedSourcePartfieldIdentifier = ViewModel.SelectedSourcePartfield?.Identifier;
+            var selectedSourcePartfieldDisplayName = ViewModel.SelectedSourcePartfield?.DisplayName;
             _targetPackage = ClonePackage(_sourcePackage);
             ViewModel.LoadTargetDocument(_targetPackage.TaskDataXmlPath, _sourcePackage.PackagePath);
+            ViewModel.SelectedTargetPartfield = ViewModel.TargetPartfields.FirstOrDefault(partfield => partfield.Identifier == selectedSourcePartfieldIdentifier)
+                ?? ViewModel.TargetPartfields.FirstOrDefault(partfield => partfield.DisplayName == selectedSourcePartfieldDisplayName)
+                ?? ViewModel.SelectedTargetPartfield;
         }
         catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
         {

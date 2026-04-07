@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="WindowTitle" xml:space="preserve">
-    <value>TweakOne - ISOXML v3 Guidance Clone</value>
+    <value>TweakOne - ISOXML v3 Guidance Clone/Rectify</value>
   </data>
   <data name="CloneTabHeader" xml:space="preserve">
     <value>Clone</value>
@@ -195,9 +195,6 @@
   <data name="DeleteSelectedTargetGuidanceButton" xml:space="preserve">
     <value>Delete selected target line</value>
   </data>
-  <data name="UseSourceAsTargetButton" xml:space="preserve">
-    <value>Use source as target &gt;</value>
-  </data>
   <data name="AutoTranslationDescription" xml:space="preserve">
     <value>Automatic translation keeps the A-B direction, chooses the side that best fits the target field, and can slide two-point AB markers along the line when needed.</value>
   </data>
@@ -222,6 +219,27 @@
   <data name="RectificationToleranceMetersLabel" xml:space="preserve">
     <value>Tolerance (meters)</value>
   </data>
+  <data name="RectificationPassModeLabel" xml:space="preserve">
+    <value>Rectification passes</value>
+  </data>
+  <data name="RectificationPassModeAutomaticLabel" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="RectificationPassModeManualLabel" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="RectificationManualPassCountLabel" xml:space="preserve">
+    <value>Manual pass count</value>
+  </data>
+  <data name="RectificationAutomaticPassCountLabel" xml:space="preserve">
+    <value>Automatic pass count</value>
+  </data>
+  <data name="RectificationAutomaticPassCountNotAnalyzed" xml:space="preserve">
+    <value>Run the analysis to see how many passes are required.</value>
+  </data>
+  <data name="RectificationToleranceGuidance" xml:space="preserve">
+    <value>Increase tolerance to reduce transitional lines, or decrease it to require more progressive passes.</value>
+  </data>
   <data name="AnalyzeRectificationButton" xml:space="preserve">
     <value>Analyze rectification</value>
   </data>
@@ -235,7 +253,7 @@
     <value>No rectification analyzed yet.</value>
   </data>
   <data name="RectificationDescription" xml:space="preserve">
-    <value>Fits a straight regression line to the selected guideline, offsets it, validates the offset against the source curve tolerance, and snaps the result to the target field boundaries.</value>
+    <value>Fits a straight regression line to the selected guideline, offsets it, validates the offset against the source curve tolerance, and generates a progressive block that ends on the final straight line.</value>
   </data>
   <data name="RectificationPreviewHint" xml:space="preserve">
     <value>The rectified candidate is previewed in green before it is applied to the target field.</value>
@@ -285,6 +303,9 @@
   <data name="RectificationTolerancePositiveError" xml:space="preserve">
     <value>The tolerance must be zero or greater.</value>
   </data>
+  <data name="RectificationPassCountRangeErrorFormat" xml:space="preserve">
+    <value>The rectification pass count must be between {0} and {1}.</value>
+  </data>
   <data name="StatusClonedGuidanceLine" xml:space="preserve">
     <value>Cloned guidance line '{0}' into target field '{1}'.</value>
   </data>
@@ -324,12 +345,6 @@
   <data name="RectifiedNegativeGuidancePathFormat" xml:space="preserve">
     <value>{0} rectified (-)</value>
   </data>
-  <data name="RectifiedPositiveSmoothedGuidancePathFormat" xml:space="preserve">
-    <value>{0} smoothed (+)</value>
-  </data>
-  <data name="RectifiedNegativeSmoothedGuidancePathFormat" xml:space="preserve">
-    <value>{0} smoothed (-)</value>
-  </data>
   <data name="PositiveDirectionLabel" xml:space="preserve">
     <value>Positive side</value>
   </data>
@@ -341,9 +356,6 @@
   </data>
   <data name="RectificationAcceptedSummaryFormat" xml:space="preserve">
     <value>Accepted. Distance range {0:0.00} m to {1:0.00} m, target offset {2:0.00} m, tolerance +/- {3:0.00} m, max deviation {4:0.00} m.</value>
-  </data>
-  <data name="RectificationTwoPassSummaryFormat" xml:space="preserve">
-    <value>Two-pass. Distance range {0:0.00} m to {1:0.00} m, target offset {2:0.00} m, tolerance +/- {3:0.00} m, max deviation {4:0.00} m, excess {5:0.00} m, inner smoothing shift {6:0.00} m.</value>
   </data>
   <data name="RectificationRejectedSummaryFormat" xml:space="preserve">
     <value>Rejected. Distance range {0:0.00} m to {1:0.00} m, target offset {2:0.00} m, tolerance +/- {3:0.00} m, max deviation {4:0.00} m.</value>
@@ -368,5 +380,23 @@
   </data>
   <data name="TranslationRequiresDistinctPointsError" xml:space="preserve">
     <value>Guidance path translation requires distinct start and end points.</value>
+  </data>
+  <data name="RectifiedPositiveSmoothedGuidancePathFormat" xml:space="preserve">
+    <value>{0} smoothed (+)</value>
+  </data>
+  <data name="RectifiedNegativeSmoothedGuidancePathFormat" xml:space="preserve">
+    <value>{0} smoothed (-)</value>
+  </data>
+  <data name="RectifiedPositiveProgressiveGuidancePathFormat" xml:space="preserve">
+    <value>{0} progressive {1}/{2} (+)</value>
+  </data>
+  <data name="RectifiedNegativeProgressiveGuidancePathFormat" xml:space="preserve">
+    <value>{0} progressive {1}/{2} (-)</value>
+  </data>
+  <data name="RectificationTwoPassSummaryFormat" xml:space="preserve">
+    <value>Two-pass. Distance range {0:0.00} m to {1:0.00} m, target offset {2:0.00} m, tolerance +/- {3:0.00} m, max deviation {4:0.00} m, excess {5:0.00} m, inner smoothing shift {6:0.00} m.</value>
+  </data>
+  <data name="UseSourceAsTargetButton" xml:space="preserve">
+    <value>Use source as target &gt;</value>
   </data>
 </root>
