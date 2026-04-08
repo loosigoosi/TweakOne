@@ -19,6 +19,7 @@ public partial class MainWindow : Window
 
     private IsoXmlTaskDataPackage? _sourcePackage;
     private IsoXmlTaskDataPackage? _targetPackage;
+    private IsoXmlTaskDataPackage? _centeredRectificationTemplatePackage;
     private InputElement? _activePreviewViewport;
     private Point _lastPreviewPointerPosition;
 
@@ -76,6 +77,82 @@ public partial class MainWindow : Window
 
             ViewModel.SaveTargetDocument(_targetPackage.TaskDataXmlPath, localPath);
             IsoXmlTaskDataPackageService.SaveAs(_targetPackage, localPath);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
+        {
+            ViewModel.StatusMessage = exception.Message;
+        }
+    }
+
+    private async void ApplyCenteredRectificationTemplate_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_centeredRectificationTemplatePackage is null)
+            {
+                throw new InvalidOperationException(Strings.CenteredRectificationNoTemplateLoaded);
+            }
+
+            var suggestedFileName = string.IsNullOrWhiteSpace(_centeredRectificationTemplatePackage.PackagePath)
+                ? Strings.DefaultTargetPackageFileName
+                : Path.GetFileName(_centeredRectificationTemplatePackage.PackagePath);
+
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Strings.SaveCenteredRectificationTemplatePickerTitle,
+                SuggestedFileName = suggestedFileName,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType(Strings.IsoXmlPackageFileType)
+                    {
+                        Patterns = new[] { "*.zip" },
+                        MimeTypes = new[] { "application/zip" }
+                    }
+                }
+            }).ConfigureAwait(true);
+
+            var localPath = file?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(localPath))
+            {
+                return;
+            }
+
+            ViewModel.ApplyCenteredRectificationTemplate(_centeredRectificationTemplatePackage.TaskDataXmlPath, localPath);
+            IsoXmlTaskDataPackageService.SaveAs(_centeredRectificationTemplatePackage, localPath);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
+        {
+            ViewModel.StatusMessage = exception.Message;
+        }
+    }
+
+    private async void OpenCenteredRectificationTemplate_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Strings.OpenCenteredRectificationTemplatePickerTitle,
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType(Strings.IsoXmlPackageFileType)
+                    {
+                        Patterns = new[] { "*.zip" },
+                        MimeTypes = new[] { "application/zip" }
+                    }
+                }
+            }).ConfigureAwait(true);
+
+            var localPath = files.Count > 0 ? files[0].TryGetLocalPath() : null;
+            if (string.IsNullOrWhiteSpace(localPath))
+            {
+                return;
+            }
+
+            var package = IsoXmlTaskDataPackageService.Open(localPath);
+            _centeredRectificationTemplatePackage = package;
+            ViewModel.LoadCenteredRectificationTemplate(package.TaskDataXmlPath, package.PackagePath);
         }
         catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
         {
@@ -162,6 +239,11 @@ public partial class MainWindow : Window
         ViewModel.ResetRectificationTargetPreviewZoom();
     }
 
+    private void ResetCenteredRectificationPreviewZoom_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel.ResetCenteredRectificationPreviewZoom();
+    }
+
     private void CloneSourcePreview_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         BeginPreviewPan(sender, e);
@@ -222,6 +304,21 @@ public partial class MainWindow : Window
         EndPreviewPan(sender, e);
     }
 
+    private void CenteredRectificationPreview_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginPreviewPan(sender, e);
+    }
+
+    private void CenteredRectificationPreview_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        UpdatePreviewPan(sender, ViewModel.TranslateCenteredRectificationPreviewPan, e);
+    }
+
+    private void CenteredRectificationPreview_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        EndPreviewPan(sender, e);
+    }
+
     private void PreviewViewport_PointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
         _activePreviewViewport = null;
@@ -245,6 +342,11 @@ public partial class MainWindow : Window
     private void RectificationTargetPreview_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         ZoomPreviewAtPointer(sender, ViewModel.RectificationTargetPreviewZoom, ViewModel.RectificationTargetPreviewOffsetX, ViewModel.RectificationTargetPreviewOffsetY, zoom => ViewModel.RectificationTargetPreviewZoom = zoom, ViewModel.SetRectificationTargetPreviewPan, e);
+    }
+
+    private void CenteredRectificationPreview_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        ZoomPreviewAtPointer(sender, ViewModel.CenteredRectificationPreviewZoom, ViewModel.CenteredRectificationPreviewOffsetX, ViewModel.CenteredRectificationPreviewOffsetY, zoom => ViewModel.CenteredRectificationPreviewZoom = zoom, ViewModel.SetCenteredRectificationPreviewPan, e);
     }
 
     private void AnalyzeRectification_Click(object? sender, RoutedEventArgs e)

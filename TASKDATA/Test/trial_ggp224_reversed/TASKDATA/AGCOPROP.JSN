@@ -1,0 +1,51 @@
+{
+  "VersionMajor" : 1,
+  "VersionMinor" : 0,
+  "pdts" : null,
+  "wkrs" : null,
+  "hlis" : null,
+  "plns" : [ {
+    "id" : "PLN38",
+    "uuid" : "{d00c8098-3781-4d0d-986e-3f38e45fd75c}",
+    "headland_segments" : {
+      "type" : 1,
+      "version" : 3,
+      "segments" : [ {
+        "end" : 0,
+        "start" : 0,
+        "width" : 0,
+        "join_type" : 1,
+        "turn_boundary_width" : 0
+      } ],
+      "boundary_uuid" : "{844b11c0-a8f6-11ef-bd18-070c32cdc21d}",
+      "boundary_checksum" : "e01eab6c6444aeebb122218f139a8f57"
+    }
+  } ],
+  "ggps" : [ {
+    "id" : "GGP1219",
+    "uuid" : "{5f266d69-1ff0-4749-b09e-b6b69d73b890}",
+    "type" : 0,
+    "source" : 2,
+    "gd_wayline_version" : 2
+  }, {
+    "id" : "GGP566",
+    "uuid" : "{cd63b5f8-32de-11ef-b76d-03b32e393e50}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP226",
+    "uuid" : "{1f6e1084-3152-11ef-b714-2f4be75038ef}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP224",
+    "uuid" : "{1f59d916-3152-11ef-b714-2f4be75038ef}",
+    "type" : 0,
+    "source" : 0
+  }, {
+    "id" : "GGP757",
+    "uuid" : "{a99b81d6-3c80-11ef-b742-d7ae2dbec041}",
+    "type" : 0,
+    "source" : 0
+  } ]
+}

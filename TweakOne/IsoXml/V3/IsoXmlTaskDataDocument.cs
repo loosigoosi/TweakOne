@@ -186,6 +186,9 @@ namespace TweakOne.IsoXml.V3
         [XmlElement("LSG")]
         public List<IsoXmlLineString> LineStrings { get; set; } = new();
 
+        [XmlElement("GGP")]
+        public List<IsoXmlGuidanceGroup> GuidanceGroups { get; set; } = new();
+
         [XmlElement("PNT")]
         public List<IsoXmlPoint> Points { get; set; } = new();
 
@@ -196,6 +199,48 @@ namespace TweakOne.IsoXml.V3
         public XmlAttribute[]? AdditionalAttributes { get; set; }
 
         public IEnumerable<IsoXmlLineString> GuidancePaths => LineStrings.Where(static line => line.Type == IsoXmlLineString.GuidancePathType);
+    }
+
+    public sealed class IsoXmlGuidanceGroup
+    {
+        [XmlAttribute("A")]
+        public string? Id { get; set; }
+
+        [XmlAttribute("B")]
+        public string? Designator { get; set; }
+
+        [XmlElement("GPN")]
+        public List<IsoXmlGuidancePattern> GuidancePatterns { get; set; } = new();
+
+        [XmlAnyElement]
+        public XmlElement[]? AdditionalElements { get; set; }
+
+        [XmlAnyAttribute]
+        public XmlAttribute[]? AdditionalAttributes { get; set; }
+    }
+
+    public sealed class IsoXmlGuidancePattern
+    {
+        public const int AbGuidancePatternType = 1;
+        public const int CurveGuidancePatternType = 3;
+
+        [XmlAttribute("A")]
+        public string? Id { get; set; }
+
+        [XmlAttribute("B")]
+        public string? Designator { get; set; }
+
+        [XmlAttribute("C")]
+        public int Type { get; set; }
+
+        [XmlElement("LSG")]
+        public IsoXmlLineString? LineString { get; set; }
+
+        [XmlAnyElement]
+        public XmlElement[]? AdditionalElements { get; set; }
+
+        [XmlAnyAttribute]
+        public XmlAttribute[]? AdditionalAttributes { get; set; }
     }
 
     public sealed class IsoXmlPolygon
@@ -239,6 +284,7 @@ namespace TweakOne.IsoXml.V3
     public sealed class IsoXmlLineString
     {
         public const int GuidancePathType = 5;
+        public const int MarkerLineType = 7;
 
         [XmlAttribute("A")]
         public int Type { get; set; }

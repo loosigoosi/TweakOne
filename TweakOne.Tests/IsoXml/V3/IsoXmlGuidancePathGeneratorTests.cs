@@ -137,6 +137,35 @@ namespace TweakOne.Tests.IsoXml.V3
         }
 
         [Fact]
+        public void CreateGroupedRectification_WhenLinesAreProvided_AddsOneGroupWithOrderedNestedGuidancePatterns()
+        {
+            var generator = new IsoXmlGuidancePathGenerator();
+            var target = new IsoXmlPartfield();
+            var lines = new[]
+            {
+                CreateGuidanceLine("Passata_01", 45.000000d, 7.000000d, 45.000020d, 7.000200d, 45.000000d, 7.000400d),
+                CreateGuidanceLine("Passata_02", 45.000010d, 7.000000d, 45.000030d, 7.000200d, 45.000010d, 7.000400d),
+                CreateGuidanceLine("AB_Finale", 45.000020d, 7.000000d, 45.000020d, 7.000400d)
+            };
+
+            var group = generator.CreateGroupedRectification(target, lines, "Rettifica_Graduale_CampoX");
+
+            Assert.Single(target.GuidanceGroups);
+            Assert.Equal("Rettifica_Graduale_CampoX", group.Designator);
+            Assert.Equal(lines.Length, group.GuidancePatterns.Count);
+            Assert.Equal(IsoXmlGuidancePattern.CurveGuidancePatternType, group.GuidancePatterns[0].Type);
+            Assert.Equal(IsoXmlGuidancePattern.CurveGuidancePatternType, group.GuidancePatterns[1].Type);
+            Assert.Equal(IsoXmlGuidancePattern.AbGuidancePatternType, group.GuidancePatterns[2].Type);
+            Assert.NotNull(group.GuidancePatterns[0].LineString);
+            Assert.NotSame(lines[0].Points[0], group.GuidancePatterns[0].LineString!.Points[0]);
+            Assert.Equal(6, group.GuidancePatterns[0].LineString.Points[0].Type);
+            Assert.Equal(9, group.GuidancePatterns[0].LineString.Points[1].Type);
+            Assert.Equal(7, group.GuidancePatterns[0].LineString.Points[^1].Type);
+            Assert.Equal(6, group.GuidancePatterns[2].LineString!.Points[0].Type);
+            Assert.Equal(7, group.GuidancePatterns[2].LineString.Points[^1].Type);
+        }
+
+        [Fact]
         public void Save_WhenDocumentIsRoundTripped_PreservesTheAddedGuidancePath()
         {
             var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.xml");
@@ -150,6 +179,32 @@ namespace TweakOne.Tests.IsoXml.V3
             var reloaded = IsoXmlTaskDataSerializer.Load(tempFilePath);
 
             Assert.Contains(reloaded.GetRequiredPartfield("PFD2").GuidancePaths, line => line.Designator == "AB roundtrip");
+        }
+
+        [Fact]
+        public void Save_WhenGroupedRectificationIsRoundTripped_PreservesTheAddedGuidanceGroup()
+        {
+            var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.xml");
+            var document = IsoXmlTaskDataSerializer.Load(GetTaskDataPath());
+            var generator = new IsoXmlGuidancePathGenerator();
+            var partfield = document.GetRequiredPartfield("PFD2");
+            var lines = new[]
+            {
+                CreateGuidanceLine("Passata_01", 45.000000d, 7.000000d, 45.000020d, 7.000200d, 45.000000d, 7.000400d),
+                CreateGuidanceLine("Passata_02", 45.000010d, 7.000000d, 45.000030d, 7.000200d, 45.000010d, 7.000400d),
+                CreateGuidanceLine("AB_Finale", 45.000020d, 7.000000d, 45.000020d, 7.000400d)
+            };
+
+            generator.CreateGroupedRectification(partfield, lines, "Rettifica_Graduale_CampoX");
+            IsoXmlTaskDataSerializer.Save(document, tempFilePath);
+            var reloaded = IsoXmlTaskDataSerializer.Load(tempFilePath);
+            var reloadedPartfield = reloaded.GetRequiredPartfield("PFD2");
+            var reloadedGroup = Assert.Single(reloadedPartfield.GuidanceGroups);
+
+            Assert.Equal("Rettifica_Graduale_CampoX", reloadedGroup.Designator);
+            Assert.Equal(3, reloadedGroup.GuidancePatterns.Count);
+            Assert.Equal(IsoXmlGuidancePattern.AbGuidancePatternType, reloadedGroup.GuidancePatterns[^1].Type);
+            Assert.All(reloadedGroup.GuidancePatterns, static pattern => Assert.NotNull(pattern.LineString));
         }
 
         [Fact]
@@ -194,6 +249,27 @@ namespace TweakOne.Tests.IsoXml.V3
                     }
                 }
             };
+        }
+
+        private static IsoXmlLineString CreateGuidanceLine(string designator, params double[] northEastPairs)
+        {
+            var line = new IsoXmlLineString
+            {
+                Type = IsoXmlLineString.GuidancePathType,
+                Designator = designator
+            };
+
+            for (var index = 0; index < northEastPairs.Length; index += 2)
+            {
+                line.Points.Add(new IsoXmlPoint
+                {
+                    Type = 2,
+                    North = northEastPairs[index],
+                    East = northEastPairs[index + 1]
+                });
+            }
+
+            return line;
         }
     }
 }

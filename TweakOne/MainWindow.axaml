@@ -318,10 +318,39 @@
                                            IsVisible="{Binding IsRectificationAutomaticPassCountVisible}"
                                            Foreground="Gray"
                                            TextWrapping="Wrap" />
+                                 <TextBlock Text="{Binding Strings.RectificationExportModeLabel}" />
+                                 <StackPanel Spacing="6">
+                                     <RadioButton Content="{Binding Strings.RectificationExportModeSingleLabel}"
+                                                  GroupName="RectificationExportMode"
+                                                  IsChecked="{Binding IsRectificationExportModeSingle}" />
+                                     <RadioButton Content="{Binding Strings.RectificationExportModeGroupedLabel}"
+                                                  GroupName="RectificationExportMode"
+                                                  IsChecked="{Binding IsRectificationExportModeGrouped}" />
+                                     <RadioButton Content="{Binding Strings.RectificationExportModeTramlinesLabel}"
+                                                  GroupName="RectificationExportMode"
+                                                  IsChecked="{Binding IsRectificationExportModeTramlines}"
+                                                  IsEnabled="{Binding IsRectificationTramlinesExportModeEnabled}" />
+                                 </StackPanel>
+                                 <TextBlock Text="{Binding Strings.RectificationGroupedExportHint}"
+                                            Foreground="Gray"
+                                            TextWrapping="Wrap" />
                                 <Button Content="{Binding Strings.AnalyzeRectificationButton}" Click="AnalyzeRectification_Click" IsEnabled="{Binding CanAnalyzeRectification}" />
                                 <Button Content="{Binding Strings.ApplyRectifiedGuidanceButton}" Click="ApplyRectification_Click" IsEnabled="{Binding CanApplyRectification}" />
                                 <TextBlock Text="{Binding Strings.RectificationResultHeader}" FontWeight="SemiBold" Margin="0,8,0,0" />
-                                <TextBlock Text="{Binding RectificationResultDisplay}" TextWrapping="Wrap" />
+                                <ListBox ItemsSource="{Binding RectificationCandidates}"
+                                         SelectedItem="{Binding SelectedRectificationCandidate}"
+                                         MinHeight="120"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:RectificationCandidateViewModel">
+                                            <StackPanel Margin="0,4,0,4">
+                                                <TextBlock Text="{Binding DirectionLabel}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
@@ -402,6 +431,96 @@
                             </Grid>
 
                             <TextBlock Grid.Row="4" Text="{Binding Strings.RectificationPreviewHint}" Foreground="Gray" TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="{Binding Strings.CenteredRectificationTabHeader}">
+                <Grid Margin="0,12,0,0" ColumnDefinitions="*,Auto,*">
+                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0">
+                        <Grid RowDefinitions="Auto,* ,Auto" RowSpacing="8">
+                            <TextBlock Text="{Binding Strings.CenteredRectificationPreviewHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="8">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                                    <TextBlock Text="{Binding Strings.PreviewZoomLabel}" VerticalAlignment="Center" />
+                                    <Slider Grid.Column="1" Minimum="0.5" Maximum="8" Value="{Binding CenteredRectificationPreviewZoom}" TickFrequency="0.25" />
+                                    <TextBlock Grid.Column="2" Text="{Binding CenteredRectificationPreviewZoomDisplay}" VerticalAlignment="Center" />
+                                    <Button Grid.Column="3" Content="{Binding Strings.PreviewResetZoomButton}" Click="ResetCenteredRectificationPreviewZoom_Click" />
+                                </Grid>
+                                <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="4" Padding="4" Width="328" Height="328" ClipToBounds="True">
+                                    <Grid x:Name="CenteredRectificationPreviewViewport"
+                                          Background="Transparent"
+                                          PointerPressed="CenteredRectificationPreview_PointerPressed"
+                                          PointerMoved="CenteredRectificationPreview_PointerMoved"
+                                          PointerReleased="CenteredRectificationPreview_PointerReleased"
+                                          PointerCaptureLost="PreviewViewport_PointerCaptureLost"
+                                          PointerWheelChanged="CenteredRectificationPreview_PointerWheelChanged">
+                                        <ItemsControl ItemsSource="{Binding CenteredRectificationPreviewShapes}" Width="{Binding CenteredRectificationPreviewCanvasSize}" Height="{Binding CenteredRectificationPreviewCanvasSize}" IsHitTestVisible="False">
+                                            <ItemsControl.RenderTransform>
+                                                <TranslateTransform X="{Binding CenteredRectificationPreviewOffsetX}" Y="{Binding CenteredRectificationPreviewOffsetY}" />
+                                            </ItemsControl.RenderTransform>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <Canvas />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:PreviewPolylineViewModel">
+                                                    <Polyline Points="{Binding Points}" Stroke="{Binding Stroke}" StrokeThickness="{Binding Thickness}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <TextBlock Grid.Row="2" Text="{Binding Strings.CenteredRectificationPreviewHint}" Foreground="Gray" TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0" Width="320">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="{Binding Strings.CenteredRectificationControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                <Button Content="{Binding Strings.OpenCenteredRectificationTemplateButton}" Click="OpenCenteredRectificationTemplate_Click" />
+                                <Button Content="{Binding Strings.ApplyCenteredRectificationTemplateButton}"
+                                        Click="ApplyCenteredRectificationTemplate_Click"
+                                        IsEnabled="{Binding CanApplyCenteredRectificationTemplate}" />
+                                <TextBlock Text="{Binding Strings.CenteredRectificationTemplateLabel}" />
+                                <TextBlock Text="{Binding CenteredRectificationTemplatePathDisplay}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Strings.CenteredRectificationAcceptedPackageLabel}" />
+                                <TextBlock Text="{Binding CenteredRectificationAcceptedPackageDisplay}" TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <TextBlock Text="{Binding Strings.CenteredRectificationMarkerDistanceLabel}" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding CenteredRectificationMarkerDistanceMeters}" Width="60" HorizontalContentAlignment="Right" />
+                                </Grid>
+                                <TextBlock Text="{Binding Strings.CenteredRectificationMachineWidthLabel}" />
+                                <TextBlock Text="{Binding CenteredRectificationMachineWidthDisplay}" />
+                                <TextBlock Text="{Binding CenteredRectificationSummaryDisplay}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12">
+                        <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                            <TextBlock Text="{Binding Strings.CenteredRectificationOffsetsHeader}" FontSize="18" FontWeight="SemiBold" />
+                            <ListBox Grid.Row="1"
+                                     ItemsSource="{Binding CenteredRectificationOffsetRows}"
+                                     SelectedItem="{Binding SelectedCenteredRectificationOffsetRow}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:CenteredRectificationOffsetRowViewModel">
+                                        <StackPanel Margin="0,4,0,4">
+                                            <TextBlock Text="{Binding SuggestedDesignator}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding OriginalDesignator}" Classes="hint" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding OffsetADisplay, StringFormat=A {0}}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding OffsetBDisplay, StringFormat=B {0}}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </Grid>
                     </Border>
                 </Grid>

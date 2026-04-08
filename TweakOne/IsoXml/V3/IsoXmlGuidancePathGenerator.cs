@@ -8,6 +8,7 @@ namespace TweakOne.IsoXml.V3
     public sealed class IsoXmlGuidancePathGenerator
     {
         private const double EarthRadiusMeters = 6378137d;
+        private const int MaximumDesignatorLength = 32;
         private static readonly LocalizedStrings Strings = LocalizedStrings.Instance;
 
         /// <summary>
@@ -28,6 +29,48 @@ namespace TweakOne.IsoXml.V3
 
             targetPartfield.LineStrings.Add(copy);
             return copy;
+        }
+
+        /// <summary>
+        /// Creates an experimental grouped rectification export using a single `GGP` with multiple nested `GPN` patterns.
+        /// </summary>
+        public IsoXmlGuidanceGroup CreateGroupedRectification(IsoXmlPartfield targetPartfield, IReadOnlyList<IsoXmlLineString> sourceLineStrings, string? designator = null)
+        {
+            ArgumentNullException.ThrowIfNull(targetPartfield);
+            ArgumentNullException.ThrowIfNull(sourceLineStrings);
+
+            if (sourceLineStrings.Count == 0)
+            {
+                throw new ArgumentException("At least one guidance line is required.", nameof(sourceLineStrings));
+            }
+
+            var existingIds = new HashSet<string>(EnumerateGuidanceIds(targetPartfield), StringComparer.Ordinal);
+            var guidanceGroup = new IsoXmlGuidanceGroup
+            {
+                Id = GetNextGuidanceId(existingIds, "GGP"),
+                Designator = NormalizeDesignator(string.IsNullOrWhiteSpace(designator) ? sourceLineStrings[^1].Designator : designator)
+            };
+
+            for (var index = 0; index < sourceLineStrings.Count; index++)
+            {
+                var sourceLineString = sourceLineStrings[index] ?? throw new ArgumentException("Guidance lines cannot contain null entries.", nameof(sourceLineStrings));
+                EnsureGuidancePath(sourceLineString);
+
+                var guidancePattern = new IsoXmlGuidancePattern
+                {
+                    Id = GetNextGuidanceId(existingIds, "GPN"),
+                    Designator = NormalizeDesignator(sourceLineString.Designator),
+                    Type = index == (sourceLineStrings.Count - 1)
+                        ? IsoXmlGuidancePattern.AbGuidancePatternType
+                        : IsoXmlGuidancePattern.CurveGuidancePatternType,
+                    LineString = CreateGroupedGuidanceLineString(sourceLineString, NormalizeDesignator(sourceLineString.Designator))
+                };
+
+                guidanceGroup.GuidancePatterns.Add(guidancePattern);
+            }
+
+            targetPartfield.GuidanceGroups.Add(guidanceGroup);
+            return guidanceGroup;
         }
 
         /// <summary>
@@ -61,6 +104,58 @@ namespace TweakOne.IsoXml.V3
             {
                 throw new InvalidOperationException(Strings.FormatOnlyGuidancePathTypeError(IsoXmlLineString.GuidancePathType));
             }
+        }
+
+        private static IEnumerable<string> EnumerateGuidanceIds(IsoXmlPartfield targetPartfield)
+        {
+            return targetPartfield.GuidanceGroups
+                .Select(static group => group.Id)
+                .Concat(targetPartfield.GuidanceGroups.SelectMany(static group => group.GuidancePatterns.Select(pattern => pattern.Id)))
+                .Where(static id => !string.IsNullOrWhiteSpace(id))
+                .Select(static id => id!);
+        }
+
+        private static IsoXmlLineString CreateGroupedGuidanceLineString(IsoXmlLineString sourceLineString, string? designator)
+        {
+            var groupedLineString = sourceLineString.DeepClone();
+            groupedLineString.Designator = designator;
+
+            for (var index = 0; index < groupedLineString.Points.Count; index++)
+            {
+                groupedLineString.Points[index].Type = index switch
+                {
+                    0 => 6,
+                    _ when index == (groupedLineString.Points.Count - 1) => 7,
+                    _ => 9
+                };
+            }
+
+            return groupedLineString;
+        }
+
+        private static string GetNextGuidanceId(ISet<string> existingIds, string prefix)
+        {
+            for (var index = 1; ; index++)
+            {
+                var id = $"{prefix}{index}";
+                if (existingIds.Add(id))
+                {
+                    return id;
+                }
+            }
+        }
+
+        private static string? NormalizeDesignator(string? designator)
+        {
+            if (string.IsNullOrWhiteSpace(designator))
+            {
+                return null;
+            }
+
+            var trimmed = designator.Trim();
+            return trimmed.Length <= MaximumDesignatorLength
+                ? trimmed
+                : trimmed[..MaximumDesignatorLength];
         }
 
         private static IsoXmlLineString CreateBestTranslatedCandidate(IsoXmlPartfield targetPartfield, IsoXmlLineString sourceLineString, double lateralOffsetMeters)
@@ -119,8 +214,13 @@ namespace TweakOne.IsoXml.V3
                 return;
             }
 
-            if (TryFitAbSegmentToBoundary(targetPartfield, candidate))
+            var fittedCandidate = IsoXmlGuidanceBoundaryClipper.FitInfiniteSegmentToBoundary(targetPartfield, candidate);
+            if (!AreSamePoint(candidate.Points[0], fittedCandidate.Points[0]) || !AreSamePoint(candidate.Points[1], fittedCandidate.Points[1]))
             {
+                candidate.Points[0].North = fittedCandidate.Points[0].North;
+                candidate.Points[0].East = fittedCandidate.Points[0].East;
+                candidate.Points[1].North = fittedCandidate.Points[1].North;
+                candidate.Points[1].East = fittedCandidate.Points[1].East;
                 return;
             }
 
@@ -138,60 +238,6 @@ namespace TweakOne.IsoXml.V3
 
             var centroid = CalculateCentroid(boundaryPoints);
             TranslatePointsAlongDirection(candidate, centroid);
-        }
-
-        private static bool TryFitAbSegmentToBoundary(IsoXmlPartfield targetPartfield, IsoXmlLineString candidate)
-        {
-            var boundaryLineStrings = GetBoundaryLineStrings(targetPartfield);
-            if (boundaryLineStrings.Count == 0)
-            {
-                return false;
-            }
-
-            var firstPoint = candidate.Points[0];
-            var lastPoint = candidate.Points[1];
-            var referenceLatitudeRadians = DegreesToRadians((firstPoint.North + lastPoint.North) / 2d);
-            var cosLatitude = Math.Cos(referenceLatitudeRadians);
-            if (Math.Abs(cosLatitude) < double.Epsilon)
-            {
-                return false;
-            }
-
-            var projectedFirst = Project(firstPoint, cosLatitude);
-            var projectedLast = Project(lastPoint, cosLatitude);
-            var direction = new ProjectedPoint(projectedLast.X - projectedFirst.X, projectedLast.Y - projectedFirst.Y);
-            var directionLength = Math.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y));
-            if (directionLength <= double.Epsilon)
-            {
-                return false;
-            }
-
-            var intersections = new List<LineIntersection>();
-            foreach (var boundaryLineString in boundaryLineStrings)
-            {
-                for (var index = 0; index < boundaryLineString.Points.Count - 1; index++)
-                {
-                    var segmentStart = Project(boundaryLineString.Points[index], cosLatitude);
-                    var segmentEnd = Project(boundaryLineString.Points[index + 1], cosLatitude);
-                    if (TryIntersectInfiniteLineWithSegment(projectedFirst, direction, segmentStart, segmentEnd, out var intersection))
-                    {
-                        if (!intersections.Any(existing => AreSamePoint(existing.Point, intersection.Point)))
-                        {
-                            intersections.Add(intersection);
-                        }
-                    }
-                }
-            }
-
-            if (intersections.Count < 2)
-            {
-                return false;
-            }
-
-            var ordered = intersections.OrderBy(static intersection => intersection.LineParameter).ToArray();
-            SetProjectedPoint(candidate.Points[0], ordered[0].Point, cosLatitude);
-            SetProjectedPoint(candidate.Points[1], ordered[^1].Point, cosLatitude);
-            return true;
         }
 
         private static void TranslatePointsInParallel(IsoXmlLineString lineString, double lateralOffsetMeters)
@@ -297,15 +343,6 @@ namespace TweakOne.IsoXml.V3
                 .ToList();
         }
 
-        private static List<IsoXmlLineString> GetBoundaryLineStrings(IsoXmlPartfield targetPartfield)
-        {
-            return targetPartfield.Polygons
-                .Where(static polygon => polygon.Type == 1)
-                .SelectMany(static polygon => polygon.LineStrings)
-                .Where(static lineString => lineString.Points.Count >= 2)
-                .ToList();
-        }
-
         private static bool IsInsideTargetBoundary(IsoXmlPoint point, IReadOnlyList<IsoXmlPoint> boundaryPoints)
         {
             var isInside = false;
@@ -358,42 +395,9 @@ namespace TweakOne.IsoXml.V3
                 DegreesToRadians(point.North) * EarthRadiusMeters);
         }
 
-        private static void SetProjectedPoint(IsoXmlPoint point, ProjectedPoint projectedPoint, double cosLatitude)
+        private static bool AreSamePoint(IsoXmlPoint first, IsoXmlPoint second)
         {
-            point.North = RadiansToDegrees(projectedPoint.Y / EarthRadiusMeters);
-            point.East = RadiansToDegrees(projectedPoint.X / (EarthRadiusMeters * cosLatitude));
-        }
-
-        private static bool TryIntersectInfiniteLineWithSegment(ProjectedPoint lineOrigin, ProjectedPoint lineDirection, ProjectedPoint segmentStart, ProjectedPoint segmentEnd, out LineIntersection intersection)
-        {
-            var segmentDirection = new ProjectedPoint(segmentEnd.X - segmentStart.X, segmentEnd.Y - segmentStart.Y);
-            var denominator = Cross(lineDirection, segmentDirection);
-            if (Math.Abs(denominator) <= double.Epsilon)
-            {
-                intersection = default;
-                return false;
-            }
-
-            var offset = new ProjectedPoint(segmentStart.X - lineOrigin.X, segmentStart.Y - lineOrigin.Y);
-            var lineParameter = Cross(offset, segmentDirection) / denominator;
-            var segmentParameter = Cross(offset, lineDirection) / denominator;
-            if (segmentParameter < -1e-9 || segmentParameter > 1d + 1e-9)
-            {
-                intersection = default;
-                return false;
-            }
-
-            intersection = new LineIntersection(
-                lineParameter,
-                new ProjectedPoint(
-                    lineOrigin.X + (lineParameter * lineDirection.X),
-                    lineOrigin.Y + (lineParameter * lineDirection.Y)));
-            return true;
-        }
-
-        private static bool AreSamePoint(ProjectedPoint first, ProjectedPoint second)
-        {
-            return Math.Abs(first.X - second.X) <= 0.01d && Math.Abs(first.Y - second.Y) <= 0.01d;
+            return Math.Abs(first.North - second.North) <= 1e-9 && Math.Abs(first.East - second.East) <= 1e-9;
         }
 
         private static double Cross(ProjectedPoint first, ProjectedPoint second)
@@ -409,8 +413,6 @@ namespace TweakOne.IsoXml.V3
         {
             public static CandidateScore Empty { get; } = new(0, double.MaxValue);
         }
-
-        private readonly record struct LineIntersection(double LineParameter, ProjectedPoint Point);
 
         private readonly record struct ProjectedPoint(double X, double Y);
     }

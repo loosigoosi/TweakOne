@@ -18,8 +18,11 @@ internal sealed class MainWindowViewModel : ObservableObject
     private const double MaximumPreviewZoom = 8d;
     private readonly IsoXmlGuidancePathGenerator _generator = new();
     private readonly IsoXmlGuidanceRectificationService _rectificationService = new();
+    private readonly IsoXmlCenteredRectificationService _centeredRectificationService = new();
+    private readonly IsoXmlCenteredRectificationTemplateInjectionService _centeredRectificationTemplateInjectionService = new();
     private TaskDocumentViewModel? _sourceDocument;
     private TaskDocumentViewModel? _targetDocument;
+    private IsoXmlTaskDataDocument? _centeredRectificationTemplateDocument;
     private PartfieldViewModel? _selectedSourcePartfield;
     private PartfieldViewModel? _selectedTargetPartfield;
     private GuidancePathViewModel? _selectedSourceGuidancePath;
@@ -41,7 +44,16 @@ internal sealed class MainWindowViewModel : ObservableObject
     private int _rectificationRowCount = 4;
     private double _rectificationToleranceMeters = 0.10d;
     private IsoXmlGuidanceRectificationPassSelectionMode _rectificationPassSelectionMode = IsoXmlGuidanceRectificationPassSelectionMode.Automatic;
+    private RectificationGuidanceExportMode _rectificationGuidanceExportMode = RectificationGuidanceExportMode.Single;
     private int _rectificationManualPassCount = 2;
+    private RectificationCandidateViewModel? _selectedRectificationCandidate;
+    private CenteredRectificationPackageViewModel? _selectedCenteredRectificationPackage;
+    private CenteredRectificationOffsetRowViewModel? _selectedCenteredRectificationOffsetRow;
+    private string? _centeredRectificationTemplatePath;
+    private double _centeredRectificationMarkerDistanceMeters = 9d;
+    private double _centeredRectificationPreviewZoom = 1d;
+    private double _centeredRectificationPreviewOffsetX;
+    private double _centeredRectificationPreviewOffsetY;
     private double _rectificationSourcePreviewZoom = 1d;
     private double _rectificationTargetPreviewZoom = 1d;
     private double _rectificationSourcePreviewOffsetX;
@@ -49,6 +61,7 @@ internal sealed class MainWindowViewModel : ObservableObject
     private double _rectificationTargetPreviewOffsetX;
     private double _rectificationTargetPreviewOffsetY;
     private string _rectificationResultDisplay = LocalizedStrings.Instance.RectificationResultNotAnalyzed;
+    private string _centeredRectificationSummaryDisplay = LocalizedStrings.Instance.CenteredRectificationNoAcceptedPackage;
     private string _statusMessage = LocalizedStrings.Instance.StatusInitial;
 
     public LocalizedStrings Strings { get; } = LocalizedStrings.Instance;
@@ -64,6 +77,14 @@ internal sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<PreviewPolylineViewModel> RectificationSourcePreviewShapes { get; } = new();
 
     public ObservableCollection<PreviewPolylineViewModel> RectificationTargetPreviewShapes { get; } = new();
+
+    public ObservableCollection<RectificationCandidateViewModel> RectificationCandidates { get; } = new();
+
+    public ObservableCollection<PreviewPolylineViewModel> CenteredRectificationPreviewShapes { get; } = new();
+
+    public ObservableCollection<CenteredRectificationPackageViewModel> CenteredRectificationPackages { get; } = new();
+
+    public ObservableCollection<CenteredRectificationOffsetRowViewModel> CenteredRectificationOffsetRows { get; } = new();
 
     public IReadOnlyList<int> RectificationManualPassCounts { get; } = Enumerable.Range(1, IsoXmlGuidanceRectificationService.MaximumManualPassCount).ToArray();
 
@@ -118,6 +139,69 @@ internal sealed class MainWindowViewModel : ObservableObject
     public bool IsRectificationManualPassCountEnabled => _rectificationPassSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Manual;
 
     public bool IsRectificationAutomaticPassCountVisible => _rectificationPassSelectionMode == IsoXmlGuidanceRectificationPassSelectionMode.Automatic;
+
+    public bool IsRectificationExportModeSingle
+    {
+        get => _rectificationGuidanceExportMode == RectificationGuidanceExportMode.Single;
+        set
+        {
+            if (value)
+            {
+                SetRectificationGuidanceExportMode(RectificationGuidanceExportMode.Single);
+            }
+        }
+    }
+
+    public bool IsRectificationExportModeGrouped
+    {
+        get => _rectificationGuidanceExportMode == RectificationGuidanceExportMode.Grouped;
+        set
+        {
+            if (value)
+            {
+                SetRectificationGuidanceExportMode(RectificationGuidanceExportMode.Grouped);
+            }
+        }
+    }
+
+    public bool IsRectificationExportModeTramlines
+    {
+        get => _rectificationGuidanceExportMode == RectificationGuidanceExportMode.Tramlines;
+        set
+        {
+            if (value)
+            {
+                SetRectificationGuidanceExportMode(RectificationGuidanceExportMode.Tramlines);
+            }
+        }
+    }
+
+    public bool IsRectificationTramlinesExportModeEnabled => false;
+
+    public CenteredRectificationPackageViewModel? SelectedCenteredRectificationPackage
+    {
+        get => _selectedCenteredRectificationPackage;
+        set
+        {
+            if (SetProperty(ref _selectedCenteredRectificationPackage, value))
+            {
+                ResetCenteredRectificationPreviewPan();
+                RefreshCenteredRectificationPlan();
+            }
+        }
+    }
+
+    public CenteredRectificationOffsetRowViewModel? SelectedCenteredRectificationOffsetRow
+    {
+        get => _selectedCenteredRectificationOffsetRow;
+        set
+        {
+            if (SetProperty(ref _selectedCenteredRectificationOffsetRow, value))
+            {
+                RefreshCenteredRectificationPreview();
+            }
+        }
+    }
 
     public int RectificationManualPassCount
     {
@@ -202,11 +286,6 @@ internal sealed class MainWindowViewModel : ObservableObject
                 CloneDesignator = $"{value.DisplayName} copy";
             }
 
-            if (value is not null && string.IsNullOrWhiteSpace(RectificationDesignator))
-            {
-                RectificationDesignator = Strings.FormatRectifiedGuidanceDesignator(value.DisplayName);
-            }
-
             RefreshCloneSourcePreview();
             OnPropertyChanged(nameof(CanCloneGuidancePath));
         }
@@ -222,14 +301,22 @@ internal sealed class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            if (value is not null && string.IsNullOrWhiteSpace(RectificationDesignator))
-            {
-                RectificationDesignator = Strings.FormatRectifiedGuidanceDesignator(value.DisplayName);
-            }
-
             RefreshRectificationSourcePreview();
             OnPropertyChanged(nameof(CanAnalyzeRectification));
             InvalidateRectificationResult();
+        }
+    }
+
+    public RectificationCandidateViewModel? SelectedRectificationCandidate
+    {
+        get => _selectedRectificationCandidate;
+        set
+        {
+            if (SetProperty(ref _selectedRectificationCandidate, value))
+            {
+                OnPropertyChanged(nameof(CanApplyRectification));
+                RefreshRectificationTargetPreview();
+            }
         }
     }
 
@@ -323,6 +410,8 @@ internal sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _rectificationDesignator, value))
             {
+                OnPropertyChanged(nameof(CanAnalyzeRectification));
+                OnPropertyChanged(nameof(CanApplyRectification));
                 InvalidateRectificationResult();
             }
         }
@@ -430,6 +519,62 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public string RectificationApplicationOffsetDisplay => (RectificationOffsetMeters * RectificationRowCount).ToString("0.##");
 
+    public double CenteredRectificationPreviewZoom
+    {
+        get => _centeredRectificationPreviewZoom;
+        set
+        {
+            if (SetPreviewZoom(ref _centeredRectificationPreviewZoom, value, nameof(CenteredRectificationPreviewZoom), nameof(CenteredRectificationPreviewZoomDisplay), nameof(CenteredRectificationPreviewCanvasSize)))
+            {
+                RefreshCenteredRectificationPreview();
+            }
+        }
+    }
+
+    public string CenteredRectificationPreviewZoomDisplay => FormatPreviewZoom(CenteredRectificationPreviewZoom);
+
+    public double CenteredRectificationPreviewCanvasSize => BasePreviewCanvasSize * CenteredRectificationPreviewZoom;
+
+    public double CenteredRectificationPreviewOffsetX
+    {
+        get => _centeredRectificationPreviewOffsetX;
+        private set => SetProperty(ref _centeredRectificationPreviewOffsetX, value);
+    }
+
+    public double CenteredRectificationPreviewOffsetY
+    {
+        get => _centeredRectificationPreviewOffsetY;
+        private set => SetProperty(ref _centeredRectificationPreviewOffsetY, value);
+    }
+
+    public double CenteredRectificationMarkerDistanceMeters
+    {
+        get => _centeredRectificationMarkerDistanceMeters;
+        set
+        {
+            if (SetProperty(ref _centeredRectificationMarkerDistanceMeters, Math.Max(0d, value)))
+            {
+                RefreshCenteredRectificationPlan();
+            }
+        }
+    }
+
+    public string CenteredRectificationTemplatePathDisplay => _centeredRectificationTemplatePath ?? Strings.CenteredRectificationNoTemplateLoaded;
+
+    public string CenteredRectificationAcceptedPackageDisplay => SelectedCenteredRectificationPackage?.DisplayName ?? Strings.CenteredRectificationNoAcceptedPackage;
+
+    public string CenteredRectificationSummaryDisplay
+    {
+        get => _centeredRectificationSummaryDisplay;
+        private set => SetProperty(ref _centeredRectificationSummaryDisplay, value);
+    }
+
+    public string CenteredRectificationMachineWidthDisplay => SelectedCenteredRectificationPackage?.MachineWidthMeters.ToString("0.##") ?? Strings.CenteredRectificationNotAvailable;
+
+    public bool CanUseCenteredRectification => SelectedCenteredRectificationPackage is not null;
+
+    public bool CanApplyCenteredRectificationTemplate => _centeredRectificationTemplateDocument is not null && SelectedCenteredRectificationPackage?.Plan is not null;
+
     public string RectificationAutomaticPassCountDisplay
     {
         get
@@ -458,9 +603,9 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public bool CanDeleteTargetGuidancePath => SelectedTargetGuidancePath is not null && SelectedTargetPartfield is not null;
 
-    public bool CanAnalyzeRectification => SelectedRectificationSourceGuidancePath is not null && SelectedTargetPartfield is not null;
+    public bool CanAnalyzeRectification => SelectedRectificationSourceGuidancePath is not null && SelectedTargetPartfield is not null && HasRectificationDesignator;
 
-    public bool CanApplyRectification => _currentRectificationResult is not null && _currentRectificationResult.Candidates.Any(static candidate => candidate.IsAccepted) && SelectedTargetPartfield is not null;
+    public bool CanApplyRectification => SelectedRectificationCandidate?.Candidate.IsAccepted == true && SelectedTargetPartfield is not null && HasRectificationDesignator;
 
     public void LoadSourceDocument(string filePath, string? displayPath = null)
     {
@@ -546,11 +691,18 @@ internal sealed class MainWindowViewModel : ObservableObject
             RectificationOffsetMeters,
             RectificationRowCount,
             RectificationToleranceMeters,
-            GetRectificationDesignator(source),
+            RequireRectificationDesignator(),
             _rectificationPassSelectionMode,
             RectificationManualPassCount);
 
         _currentRectificationResult = result;
+        RectificationCandidates.Clear();
+        foreach (var candidate in result.Candidates)
+        {
+            RectificationCandidates.Add(new RectificationCandidateViewModel(candidate, CreateRectificationCandidateSummary(candidate)));
+        }
+
+        SelectedRectificationCandidate = RectificationCandidates.FirstOrDefault();
         RectificationResultDisplay = string.Join(Environment.NewLine, result.Candidates.Select(CreateRectificationCandidateSummary));
         OnPropertyChanged(nameof(RectificationAutomaticPassCountDisplay));
         RefreshRectificationTargetPreview();
@@ -560,23 +712,45 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public void ApplyRectification()
     {
+        var source = SelectedRectificationSourceGuidancePath ?? throw new InvalidOperationException(Strings.SelectSourceGuidanceLineError);
         var target = SelectedTargetPartfield ?? throw new InvalidOperationException(Strings.SelectTargetFieldError);
-        var result = _currentRectificationResult ?? throw new InvalidOperationException(Strings.RectificationResultNotAnalyzed);
-        var acceptedCandidates = result.Candidates.Where(static candidate => candidate.IsAccepted).ToArray();
-        if (acceptedCandidates.Length == 0)
+        var selectedCandidate = SelectedRectificationCandidate?.Candidate ?? throw new InvalidOperationException(RectificationResultDisplay);
+        if (!selectedCandidate.IsAccepted)
         {
             throw new InvalidOperationException(RectificationResultDisplay);
         }
 
+        PersistCenteredRectificationPackages(source, new[] { selectedCandidate });
+
+        var appliedLineCount = 0;
+        var appliedGroupCount = 0;
         GuidancePathViewModel? lastApplied = null;
-        foreach (var candidate in acceptedCandidates)
+
+        switch (_rectificationGuidanceExportMode)
         {
-            foreach (var line in candidate.GeneratedLines)
-            {
-                var applied = line.DeepClone();
-                target.Partfield.LineStrings.Add(applied);
-                lastApplied = new GuidancePathViewModel(applied);
-            }
+            case RectificationGuidanceExportMode.Single:
+                foreach (var line in selectedCandidate.GeneratedLines)
+                {
+                    var applied = line.DeepClone();
+                    target.Partfield.LineStrings.Add(applied);
+                    lastApplied = new GuidancePathViewModel(applied);
+                    appliedLineCount++;
+                }
+
+                break;
+
+            case RectificationGuidanceExportMode.Grouped:
+                _generator.CreateGroupedRectification(target.Partfield, selectedCandidate.GeneratedLines, selectedCandidate.CandidateLine.Designator);
+                appliedLineCount += selectedCandidate.GeneratedLines.Count;
+                appliedGroupCount++;
+
+                break;
+
+            case RectificationGuidanceExportMode.Tramlines:
+                throw new InvalidOperationException(Strings.RectificationTramlinesExportNotAvailable);
+
+            default:
+                throw new InvalidOperationException($"Unsupported rectification export mode '{_rectificationGuidanceExportMode}'.");
         }
 
         target.Refresh();
@@ -585,8 +759,49 @@ internal sealed class MainWindowViewModel : ObservableObject
             SelectedTargetGuidancePath = target.GuidancePaths.LastOrDefault(path => path.DisplayName == lastApplied.DisplayName) ?? target.GuidancePaths.LastOrDefault();
         }
 
-        StatusMessage = Strings.FormatAppliedRectifiedGuidanceLines(acceptedCandidates.Sum(static candidate => candidate.GeneratedLines.Count), target.DisplayName);
+        StatusMessage = _rectificationGuidanceExportMode == RectificationGuidanceExportMode.Grouped
+            ? Strings.FormatAppliedRectifiedGuidanceGroups(appliedGroupCount, appliedLineCount, target.DisplayName)
+            : Strings.FormatAppliedRectifiedGuidanceLines(appliedLineCount, target.DisplayName);
         InvalidateRectificationResult();
+    }
+
+    public void LoadCenteredRectificationTemplate(string filePath, string? displayPath = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        var document = IsoXmlTaskDataSerializer.Load(filePath);
+        if (!string.Equals(document.VersionMajor, "4", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(Strings.CenteredRectificationTemplateVersionError);
+        }
+
+        _centeredRectificationTemplateDocument = document;
+        _centeredRectificationTemplatePath = displayPath ?? filePath;
+        OnPropertyChanged(nameof(CenteredRectificationTemplatePathDisplay));
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
+        StatusMessage = Strings.FormatLoadedCenteredRectificationTemplate(CenteredRectificationTemplatePathDisplay);
+    }
+
+    public void ApplyCenteredRectificationTemplate(string filePath, string? displayPath = null)
+    {
+        var document = _centeredRectificationTemplateDocument ?? throw new InvalidOperationException(Strings.CenteredRectificationNoTemplateLoaded);
+        var package = SelectedCenteredRectificationPackage ?? throw new InvalidOperationException(Strings.CenteredRectificationNoPlanError);
+        var plan = package.Plan ?? throw new InvalidOperationException(Strings.CenteredRectificationNoPlanError);
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        var result = _centeredRectificationTemplateInjectionService.Inject(
+            document,
+            package.SourcePartfield.Identifier,
+            package.SourcePartfield.DisplayName,
+            plan,
+            package.GeneratedLines);
+
+        IsoXmlTaskDataSerializer.Save(document, filePath);
+        var savedPath = displayPath ?? filePath;
+        var partfieldName = string.IsNullOrWhiteSpace(result.TargetPartfield.Designator)
+            ? result.TargetPartfield.Id ?? Strings.UnnamedField
+            : result.TargetPartfield.Designator;
+        StatusMessage = Strings.FormatAppliedCenteredRectificationTemplate(result.InjectedGuidanceLineCount, result.InjectedMarkerLineCount, partfieldName, savedPath);
     }
 
     private static void ReplacePartfields(ObservableCollection<PartfieldViewModel> target, IEnumerable<PartfieldViewModel> partfields)
@@ -598,6 +813,86 @@ internal sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void PersistCenteredRectificationPackages(GuidancePathViewModel source, IReadOnlyList<IsoXmlGuidanceRectificationCandidateResult> acceptedCandidates)
+    {
+        CenteredRectificationPackages.Clear();
+        SelectedCenteredRectificationPackage = null;
+
+        var sourcePartfield = SelectedSourcePartfield;
+        if (sourcePartfield is null)
+        {
+            return;
+        }
+
+        var machineWidthMeters = RectificationOffsetMeters * RectificationRowCount;
+        foreach (var candidate in acceptedCandidates)
+        {
+            var package = new CenteredRectificationPackageViewModel(
+                sourcePartfield,
+                source.LineString.DeepClone(),
+                candidate.GeneratedLines.Select(static line => line.DeepClone()).ToArray(),
+                machineWidthMeters,
+                candidate.SignedApplicationOffsetMeters >= 0d
+                    ? Strings.PositiveDirectionLabel
+                    : Strings.NegativeDirectionLabel,
+                string.IsNullOrWhiteSpace(RectificationDesignator) ? source.DisplayName : RectificationDesignator.Trim());
+
+            CenteredRectificationPackages.Add(package);
+        }
+
+        SelectedCenteredRectificationPackage = CenteredRectificationPackages.FirstOrDefault();
+        OnPropertyChanged(nameof(CanUseCenteredRectification));
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
+    }
+
+    private void RefreshCenteredRectificationPlan()
+    {
+        CenteredRectificationOffsetRows.Clear();
+        CenteredRectificationPreviewShapes.Clear();
+        OnPropertyChanged(nameof(CenteredRectificationMachineWidthDisplay));
+        OnPropertyChanged(nameof(CanUseCenteredRectification));
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
+
+        var package = SelectedCenteredRectificationPackage;
+        if (package is null)
+        {
+            CenteredRectificationSummaryDisplay = Strings.CenteredRectificationNoAcceptedPackage;
+            return;
+        }
+
+        var plan = _centeredRectificationService.BuildPlan(
+            package.SourcePartfield.Partfield,
+            package.ReferenceLine,
+            package.GeneratedLines,
+            package.MachineWidthMeters,
+            CenteredRectificationMarkerDistanceMeters,
+            package.BaseDesignator);
+
+        package.Plan = plan;
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
+
+        foreach (var row in plan.OffsetRows)
+        {
+            CenteredRectificationOffsetRows.Add(new CenteredRectificationOffsetRowViewModel(row));
+        }
+
+        SelectedCenteredRectificationOffsetRow = CenteredRectificationOffsetRows.FirstOrDefault();
+        RefreshCenteredRectificationPreview();
+
+        CenteredRectificationSummaryDisplay = Strings.FormatCenteredRectificationSummary(plan.OffsetRows.Count, plan.MachineWidthMeters, plan.MarkerDistanceMeters, package.DirectionLabel);
+    }
+
+    private void SetRectificationGuidanceExportMode(RectificationGuidanceExportMode value)
+    {
+        if (SetProperty(ref _rectificationGuidanceExportMode, value, nameof(IsRectificationExportModeSingle)))
+        {
+            OnPropertyChanged(nameof(IsRectificationExportModeSingle));
+            OnPropertyChanged(nameof(IsRectificationExportModeGrouped));
+            OnPropertyChanged(nameof(IsRectificationExportModeTramlines));
+            OnPropertyChanged(nameof(IsRectificationTramlinesExportModeEnabled));
+        }
+    }
+
     private string GetCloneDesignator(GuidancePathViewModel source)
     {
         return string.IsNullOrWhiteSpace(CloneDesignator)
@@ -605,11 +900,14 @@ internal sealed class MainWindowViewModel : ObservableObject
             : CloneDesignator.Trim();
     }
 
-    private string GetRectificationDesignator(GuidancePathViewModel source)
+    private string RequireRectificationDesignator()
     {
-        return string.IsNullOrWhiteSpace(RectificationDesignator)
-            ? Strings.FormatRectifiedGuidanceDesignator(source.DisplayName)
-            : RectificationDesignator.Trim();
+        if (string.IsNullOrWhiteSpace(RectificationDesignator))
+        {
+            throw new InvalidOperationException(Strings.RectificationDesignatorRequiredError);
+        }
+
+        return RectificationDesignator.Trim();
     }
 
     private void SetRectificationPassSelectionMode(IsoXmlGuidanceRectificationPassSelectionMode value)
@@ -666,6 +964,12 @@ internal sealed class MainWindowViewModel : ObservableObject
         ResetRectificationTargetPreviewPan();
     }
 
+    public void ResetCenteredRectificationPreviewZoom()
+    {
+        CenteredRectificationPreviewZoom = 1d;
+        ResetCenteredRectificationPreviewPan();
+    }
+
     public void SetCloneSourcePreviewPan(double x, double y)
     {
         CloneSourcePreviewOffsetX = x;
@@ -710,6 +1014,17 @@ internal sealed class MainWindowViewModel : ObservableObject
         SetRectificationTargetPreviewPan(RectificationTargetPreviewOffsetX + deltaX, RectificationTargetPreviewOffsetY + deltaY);
     }
 
+    public void SetCenteredRectificationPreviewPan(double x, double y)
+    {
+        CenteredRectificationPreviewOffsetX = x;
+        CenteredRectificationPreviewOffsetY = y;
+    }
+
+    public void TranslateCenteredRectificationPreviewPan(double deltaX, double deltaY)
+    {
+        SetCenteredRectificationPreviewPan(CenteredRectificationPreviewOffsetX + deltaX, CenteredRectificationPreviewOffsetY + deltaY);
+    }
+
     private void RefreshCloneSourcePreview()
     {
         ReplacePreviewShapes(CloneSourcePreviewShapes, SelectedSourcePartfield, SelectedSourceGuidancePath, CloneSourcePreviewZoom);
@@ -735,6 +1050,49 @@ internal sealed class MainWindowViewModel : ObservableObject
             CreateRectificationPreviewOverlays());
     }
 
+    private void RefreshCenteredRectificationPreview()
+    {
+        var package = SelectedCenteredRectificationPackage;
+        if (package is null)
+        {
+            CenteredRectificationPreviewShapes.Clear();
+            return;
+        }
+
+        ReplacePreviewShapes(
+            CenteredRectificationPreviewShapes,
+            package.SourcePartfield,
+            null,
+            CenteredRectificationPreviewZoom,
+            CreateCenteredRectificationPreviewOverlays(package));
+    }
+
+    private IReadOnlyList<PreviewOverlay>? CreateCenteredRectificationPreviewOverlays(CenteredRectificationPackageViewModel package)
+    {
+        if (package.Plan is null)
+        {
+            return null;
+        }
+
+        var selectedPassNumber = SelectedCenteredRectificationOffsetRow?.PassNumber;
+        var overlays = new List<PreviewOverlay>
+        {
+            new(package.ReferenceLine, Brushes.Goldenrod),
+            new(package.Plan.MarkerLineA, Brushes.Red),
+            new(package.Plan.MarkerLineB, Brushes.Red)
+        };
+
+        for (var index = 0; index < package.GeneratedLines.Count; index++)
+        {
+            var passNumber = index + 1;
+            overlays.Add(new PreviewOverlay(
+                package.GeneratedLines[index],
+                selectedPassNumber == passNumber ? Brushes.Orange : Brushes.MediumSeaGreen));
+        }
+
+        return overlays;
+    }
+
     private IReadOnlyList<PreviewOverlay>? CreateRectificationPreviewOverlays()
     {
         if (_currentRectificationResult is null)
@@ -742,32 +1100,50 @@ internal sealed class MainWindowViewModel : ObservableObject
             return null;
         }
 
+        var selectedCandidate = SelectedRectificationCandidate?.Candidate;
         return _currentRectificationResult.Candidates
-            .SelectMany(CreateRectificationPreviewOverlays)
+            .SelectMany(CreateCandidateOverlays)
             .ToArray();
+
+        IEnumerable<PreviewOverlay> CreateCandidateOverlays(IsoXmlGuidanceRectificationCandidateResult candidate)
+        {
+            var isSelected = selectedCandidate is not null && ReferenceEquals(selectedCandidate, candidate);
+            return CreateRectificationPreviewOverlays(candidate, isSelected);
+        }
     }
 
-    private IEnumerable<PreviewOverlay> CreateRectificationPreviewOverlays(IsoXmlGuidanceRectificationCandidateResult candidate)
+    private IEnumerable<PreviewOverlay> CreateRectificationPreviewOverlays(IsoXmlGuidanceRectificationCandidateResult candidate, bool isSelected)
     {
-        var usesPositiveDirection = candidate.SignedApplicationOffsetMeters >= 0d;
         for (var index = 0; index < candidate.GeneratedLines.Count; index++)
         {
             var isFinalPass = index == (candidate.GeneratedLines.Count - 1);
             yield return new PreviewOverlay(
                 candidate.GeneratedLines[index],
-                isFinalPass
-                    ? usesPositiveDirection ? Brushes.LimeGreen : Brushes.YellowGreen
-                    : usesPositiveDirection ? Brushes.MediumSeaGreen : Brushes.DarkOliveGreen);
+                GetRectificationOverlayBrush(isSelected, isFinalPass));
         }
     }
 
     private void InvalidateRectificationResult()
     {
         _currentRectificationResult = null;
+        RectificationCandidates.Clear();
+        SelectedRectificationCandidate = null;
         RectificationResultDisplay = Strings.RectificationResultNotAnalyzed;
         OnPropertyChanged(nameof(RectificationAutomaticPassCountDisplay));
         RefreshRectificationTargetPreview();
         OnPropertyChanged(nameof(CanApplyRectification));
+    }
+
+    private bool HasRectificationDesignator => !string.IsNullOrWhiteSpace(RectificationDesignator);
+
+    private static IBrush GetRectificationOverlayBrush(bool isSelected, bool isFinalPass)
+    {
+        if (isSelected)
+        {
+            return isFinalPass ? Brushes.Orange : Brushes.DarkOrange;
+        }
+
+        return isFinalPass ? Brushes.LimeGreen : Brushes.MediumSeaGreen;
     }
 
     private bool SetPreviewZoom(ref double field, double value, string zoomPropertyName, string zoomDisplayPropertyName, string zoomCanvasSizePropertyName)
@@ -808,6 +1184,11 @@ internal sealed class MainWindowViewModel : ObservableObject
         SetRectificationTargetPreviewPan(0d, 0d);
     }
 
+    private void ResetCenteredRectificationPreviewPan()
+    {
+        SetCenteredRectificationPreviewPan(0d, 0d);
+    }
+
     private static void ReplacePreviewShapes(ObservableCollection<PreviewPolylineViewModel> target, PartfieldViewModel? partfield, GuidancePathViewModel? highlightedGuidancePath, double zoom, IReadOnlyList<PreviewOverlay>? overlays = null)
     {
         target.Clear();
@@ -842,6 +1223,13 @@ internal sealed class TaskDocumentViewModel
         ArgumentNullException.ThrowIfNull(document);
         return new TaskDocumentViewModel(document, document.Partfields.Select(static partfield => new PartfieldViewModel(partfield)).ToArray());
     }
+}
+
+internal enum RectificationGuidanceExportMode
+{
+    Single = 0,
+    Tramlines = 1,
+    Grouped = 2
 }
 
 internal sealed class PartfieldViewModel : ObservableObject
@@ -907,6 +1295,19 @@ internal sealed class PartfieldViewModel : ObservableObject
             rawShapes.Add(new RawPreviewShape(
                 guidancePath.Points.Select(static point => new GeoPoint(point.North, point.East)).ToArray(),
                 isHighlighted ? Brushes.Orange : Brushes.DodgerBlue,
+                1d));
+        }
+
+        foreach (var markerLine in Partfield.LineStrings.Where(static line => line.Type == IsoXmlLineString.MarkerLineType))
+        {
+            if (markerLine.Points.Count < 2)
+            {
+                continue;
+            }
+
+            rawShapes.Add(new RawPreviewShape(
+                markerLine.Points.Select(static point => new GeoPoint(point.North, point.East)).ToArray(),
+                Brushes.Red,
                 1d));
         }
 
@@ -1008,6 +1409,78 @@ internal sealed class GuidancePathViewModel
             return LocalizedStrings.Instance.FormatGuidancePathSummary(LineString.Points.Count, start.North, start.East, end.North, end.East);
         }
     }
+}
+
+internal sealed class CenteredRectificationPackageViewModel
+{
+    public CenteredRectificationPackageViewModel(PartfieldViewModel sourcePartfield, IsoXmlLineString referenceLine, IReadOnlyList<IsoXmlLineString> generatedLines, double machineWidthMeters, string directionLabel, string baseDesignator)
+    {
+        SourcePartfield = sourcePartfield ?? throw new ArgumentNullException(nameof(sourcePartfield));
+        ReferenceLine = referenceLine ?? throw new ArgumentNullException(nameof(referenceLine));
+        GeneratedLines = generatedLines ?? throw new ArgumentNullException(nameof(generatedLines));
+        DirectionLabel = directionLabel ?? throw new ArgumentNullException(nameof(directionLabel));
+        BaseDesignator = string.IsNullOrWhiteSpace(baseDesignator) ? LocalizedStrings.Instance.GuidancePathDefaultName : baseDesignator.Trim();
+        MachineWidthMeters = machineWidthMeters;
+    }
+
+    public PartfieldViewModel SourcePartfield { get; }
+
+    public IsoXmlLineString ReferenceLine { get; }
+
+    public IReadOnlyList<IsoXmlLineString> GeneratedLines { get; }
+
+    public double MachineWidthMeters { get; }
+
+    public string DirectionLabel { get; }
+
+    public string BaseDesignator { get; }
+
+    public IsoXmlCenteredRectificationPlan? Plan { get; set; }
+
+    public string DisplayName => $"{BaseDesignator} - {DirectionLabel}";
+}
+
+internal sealed class CenteredRectificationOffsetRowViewModel
+{
+    public CenteredRectificationOffsetRowViewModel(IsoXmlCenteredRectificationOffsetRow row)
+    {
+        Row = row;
+    }
+
+    public IsoXmlCenteredRectificationOffsetRow Row { get; }
+
+    public int PassNumber => Row.PassNumber;
+
+    public string OriginalDesignator => Row.OriginalDesignator;
+
+    public string SuggestedDesignator => Row.SuggestedDesignator;
+
+    public string OffsetADisplay => FormatOffset(Row.OffsetACentimeters);
+
+    public string OffsetBDisplay => FormatOffset(Row.OffsetBCentimeters);
+
+    private static string FormatOffset(int centimeters)
+    {
+        var sign = centimeters >= 0 ? "+" : "-";
+        return $"{sign}{Math.Abs(centimeters):00} cm";
+    }
+}
+
+internal sealed class RectificationCandidateViewModel
+{
+    public RectificationCandidateViewModel(IsoXmlGuidanceRectificationCandidateResult candidate, string summary)
+    {
+        Candidate = candidate ?? throw new ArgumentNullException(nameof(candidate));
+        Summary = summary ?? throw new ArgumentNullException(nameof(summary));
+    }
+
+    public IsoXmlGuidanceRectificationCandidateResult Candidate { get; }
+
+    public string Summary { get; }
+
+    public string DirectionLabel => Candidate.SignedApplicationOffsetMeters >= 0d
+        ? LocalizedStrings.Instance.PositiveDirectionLabel
+        : LocalizedStrings.Instance.NegativeDirectionLabel;
 }
 
 internal sealed class PreviewPolylineViewModel

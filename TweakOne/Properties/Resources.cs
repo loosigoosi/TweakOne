@@ -12,6 +12,7 @@ internal static class Resources
     public static string WindowTitle => GetString(nameof(WindowTitle));
     public static string CloneTabHeader => GetString(nameof(CloneTabHeader));
     public static string RectificationTabHeader => GetString(nameof(RectificationTabHeader));
+    public static string CenteredRectificationTabHeader => GetString(nameof(CenteredRectificationTabHeader));
     public static string OpenSourcePackageButton => GetString(nameof(OpenSourcePackageButton));
     public static string NoSourceFileLoaded => GetString(nameof(NoSourceFileLoaded));
     public static string OpenTargetPackageButton => GetString(nameof(OpenTargetPackageButton));
@@ -40,6 +41,7 @@ internal static class Resources
     public static string RectificationControlsHeader => GetString(nameof(RectificationControlsHeader));
     public static string RectificationDesignatorLabel => GetString(nameof(RectificationDesignatorLabel));
     public static string RectificationDesignatorWatermark => GetString(nameof(RectificationDesignatorWatermark));
+    public static string RectificationDesignatorRequiredError => GetString(nameof(RectificationDesignatorRequiredError));
     public static string RectificationOffsetMetersLabel => GetString(nameof(RectificationOffsetMetersLabel));
     public static string RectificationRowCountLabel => GetString(nameof(RectificationRowCountLabel));
     public static string RectificationApplicationOffsetMetersLabel => GetString(nameof(RectificationApplicationOffsetMetersLabel));
@@ -51,12 +53,37 @@ internal static class Resources
     public static string RectificationAutomaticPassCountLabel => GetString(nameof(RectificationAutomaticPassCountLabel));
     public static string RectificationAutomaticPassCountNotAnalyzed => GetString(nameof(RectificationAutomaticPassCountNotAnalyzed));
     public static string RectificationToleranceGuidance => GetString(nameof(RectificationToleranceGuidance));
+    public static string RectificationExportModeLabel => GetString(nameof(RectificationExportModeLabel));
+    public static string RectificationExportModeSingleLabel => GetString(nameof(RectificationExportModeSingleLabel));
+    public static string RectificationExportModeGroupedLabel => GetString(nameof(RectificationExportModeGroupedLabel));
+    public static string RectificationExportModeTramlinesLabel => GetString(nameof(RectificationExportModeTramlinesLabel));
+    public static string RectificationGroupedExportHint => GetString(nameof(RectificationGroupedExportHint));
     public static string AnalyzeRectificationButton => GetString(nameof(AnalyzeRectificationButton));
     public static string ApplyRectifiedGuidanceButton => GetString(nameof(ApplyRectifiedGuidanceButton));
     public static string RectificationResultHeader => GetString(nameof(RectificationResultHeader));
     public static string RectificationResultNotAnalyzed => GetString(nameof(RectificationResultNotAnalyzed));
     public static string RectificationDescription => GetString(nameof(RectificationDescription));
     public static string RectificationPreviewHint => GetString(nameof(RectificationPreviewHint));
+    public static string CenteredRectificationPreviewHeader => GetString(nameof(CenteredRectificationPreviewHeader));
+    public static string CenteredRectificationPreviewHint => GetString(nameof(CenteredRectificationPreviewHint));
+    public static string CenteredRectificationControlsHeader => GetString(nameof(CenteredRectificationControlsHeader));
+    public static string OpenCenteredRectificationTemplateButton => GetString(nameof(OpenCenteredRectificationTemplateButton));
+    public static string ApplyCenteredRectificationTemplateButton => GetString(nameof(ApplyCenteredRectificationTemplateButton));
+    public static string OpenCenteredRectificationTemplatePickerTitle => GetString(nameof(OpenCenteredRectificationTemplatePickerTitle));
+    public static string SaveCenteredRectificationTemplatePickerTitle => GetString(nameof(SaveCenteredRectificationTemplatePickerTitle));
+    public static string CenteredRectificationTemplateLabel => GetString(nameof(CenteredRectificationTemplateLabel));
+    public static string CenteredRectificationAcceptedPackageLabel => GetString(nameof(CenteredRectificationAcceptedPackageLabel));
+    public static string CenteredRectificationMarkerDistanceLabel => GetString(nameof(CenteredRectificationMarkerDistanceLabel));
+    public static string CenteredRectificationMachineWidthLabel => GetString(nameof(CenteredRectificationMachineWidthLabel));
+    public static string CenteredRectificationOffsetsHeader => GetString(nameof(CenteredRectificationOffsetsHeader));
+    public static string CenteredRectificationNoTemplateLoaded => GetString(nameof(CenteredRectificationNoTemplateLoaded));
+    public static string CenteredRectificationTemplateMissingPartfieldError => GetString(nameof(CenteredRectificationTemplateMissingPartfieldError));
+    public static string CenteredRectificationNoPlanError => GetString(nameof(CenteredRectificationNoPlanError));
+    public static string CenteredRectificationCorrectionLineCountError => GetString(nameof(CenteredRectificationCorrectionLineCountError));
+    public static string CenteredRectificationNoAcceptedPackage => GetString(nameof(CenteredRectificationNoAcceptedPackage));
+    public static string CenteredRectificationNotAvailable => GetString(nameof(CenteredRectificationNotAvailable));
+    public static string CenteredRectificationMarkerALabel => GetString(nameof(CenteredRectificationMarkerALabel));
+    public static string CenteredRectificationMarkerBLabel => GetString(nameof(CenteredRectificationMarkerBLabel));
     public static string StatusInitial => GetString(nameof(StatusInitial));
     public static string SaveTargetBeforeLoadingError => GetString(nameof(SaveTargetBeforeLoadingError));
     public static string SaveTargetPackagePickerTitle => GetString(nameof(SaveTargetPackagePickerTitle));
@@ -67,6 +94,8 @@ internal static class Resources
     public static string StatusLoadedSourcePackage => GetString(nameof(StatusLoadedSourcePackage));
     public static string StatusLoadedTargetPackage => GetString(nameof(StatusLoadedTargetPackage));
     public static string StatusSavedTargetPackage => GetString(nameof(StatusSavedTargetPackage));
+    public static string StatusLoadedCenteredRectificationTemplate => GetString(nameof(StatusLoadedCenteredRectificationTemplate));
+    public static string StatusAppliedCenteredRectificationTemplate => GetString(nameof(StatusAppliedCenteredRectificationTemplate));
     public static string SelectSourceGuidanceLineError => GetString(nameof(SelectSourceGuidanceLineError));
     public static string SelectTargetFieldError => GetString(nameof(SelectTargetFieldError));
     public static string SelectTargetGuidanceLineError => GetString(nameof(SelectTargetGuidanceLineError));
@@ -77,6 +106,7 @@ internal static class Resources
     public static string StatusClonedAndTranslatedGuidanceLine => GetString(nameof(StatusClonedAndTranslatedGuidanceLine));
     public static string StatusDeletedTargetGuidanceLine => GetString(nameof(StatusDeletedTargetGuidanceLine));
     public static string StatusAppliedRectifiedGuidanceLines => GetString(nameof(StatusAppliedRectifiedGuidanceLines));
+    public static string StatusAppliedRectifiedGuidanceGroups => GetString(nameof(StatusAppliedRectifiedGuidanceGroups));
     public static string UnnamedField => GetString(nameof(UnnamedField));
     public static string PartfieldSummaryFormat => GetString(nameof(PartfieldSummaryFormat));
     public static string GuidancePathDefaultName => GetString(nameof(GuidancePathDefaultName));
@@ -96,6 +126,8 @@ internal static class Resources
     public static string RectificationAcceptedSummaryFormat => GetString(nameof(RectificationAcceptedSummaryFormat));
     public static string RectificationAutomaticPassCountFormat => GetString(nameof(RectificationAutomaticPassCountFormat));
     public static string RectificationAutomaticPassCountUnsupportedFormat => GetString(nameof(RectificationAutomaticPassCountUnsupportedFormat));
+    public static string CenteredRectificationSummaryFormat => GetString(nameof(CenteredRectificationSummaryFormat));
+    public static string RectificationTramlinesExportNotAvailable => GetString(nameof(RectificationTramlinesExportNotAvailable));
     public static string RectificationTwoPassSummaryFormat => GetString(nameof(RectificationTwoPassSummaryFormat));
     public static string RectificationMultiPassSummaryFormat => GetString(nameof(RectificationMultiPassSummaryFormat));
     public static string RectificationRejectedSummaryFormat => GetString(nameof(RectificationRejectedSummaryFormat));
@@ -106,6 +138,7 @@ internal static class Resources
     public static string OnlyGuidancePathTypeError => GetString(nameof(OnlyGuidancePathTypeError));
     public static string TranslationNotSupportedAtPolesError => GetString(nameof(TranslationNotSupportedAtPolesError));
     public static string TranslationRequiresDistinctPointsError => GetString(nameof(TranslationRequiresDistinctPointsError));
+    public static string CenteredRectificationTemplateVersionError => GetString(nameof(CenteredRectificationTemplateVersionError));
 
     private static string GetString(string name)
     {

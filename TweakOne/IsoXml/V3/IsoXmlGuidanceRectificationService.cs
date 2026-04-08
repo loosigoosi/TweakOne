@@ -65,13 +65,14 @@ public sealed class IsoXmlGuidanceRectificationService
         var projectedSourcePoints = sourceLineString.Points.Select(point => Project(point, cosLatitude)).ToArray();
         var applicationOffsetMeters = rowSpacingMeters * rowCount;
 
-        var positiveCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, applicationOffsetMeters, toleranceMeters, cosLatitude, GetPositiveDesignator(sourceLineString, designator), passSelectionMode, manualPassCount);
-        var negativeCandidate = EvaluateCandidate(sourceLineString, projectedSourcePoints, -applicationOffsetMeters, toleranceMeters, cosLatitude, GetNegativeDesignator(sourceLineString, designator), passSelectionMode, manualPassCount);
+        var positiveCandidate = EvaluateCandidate(targetPartfield, sourceLineString, projectedSourcePoints, applicationOffsetMeters, toleranceMeters, cosLatitude, GetPositiveDesignator(sourceLineString, designator), passSelectionMode, manualPassCount);
+        var negativeCandidate = EvaluateCandidate(targetPartfield, sourceLineString, projectedSourcePoints, -applicationOffsetMeters, toleranceMeters, cosLatitude, GetNegativeDesignator(sourceLineString, designator), passSelectionMode, manualPassCount);
 
         return new IsoXmlGuidanceRectificationResult(rowSpacingMeters, rowCount, applicationOffsetMeters, toleranceMeters, new[] { positiveCandidate.ToResult(), negativeCandidate.ToResult() });
     }
 
     private RectificationCandidateEvaluation EvaluateCandidate(
+        IsoXmlPartfield targetPartfield,
         IsoXmlLineString sourceLineString,
         IReadOnlyList<ProjectedPoint> projectedSourcePoints,
         double signedStepOffsetMeters,
@@ -94,12 +95,13 @@ public sealed class IsoXmlGuidanceRectificationService
 
         if (selectedPassCount == 1)
         {
-            var outputCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, initialAnalysis.Centroid, initialAnalysis.Direction, signedStepOffsetMeters, cosLatitude, designator);
+            var outputCandidate = BuildCandidateLine(targetPartfield, sourceLineString, projectedSourcePoints, initialAnalysis.Centroid, initialAnalysis.Direction, signedStepOffsetMeters, cosLatitude, designator);
             var metrics = MeasureCandidate(projectedSourcePoints, outputCandidate, cosLatitude, finalDesiredOffsetMeters);
             return CreateStandardEvaluation(outputCandidate, signedStepOffsetMeters, requiredPassCount, metrics.MinDistanceMeters, metrics.MaxDistanceMeters, metrics.MaxDeviationMeters, excessDeviation);
         }
 
         return CreateProgressiveEvaluation(
+            targetPartfield,
             sourceLineString,
             projectedSourcePoints,
             signedStepOffsetMeters,
@@ -129,12 +131,12 @@ public sealed class IsoXmlGuidanceRectificationService
             isAccepted ? new[] { outputCandidate } : Array.Empty<IsoXmlLineString>());
     }
 
-    private static RectificationCandidateEvaluation CreateProgressiveEvaluation(IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, double signedStepOffsetMeters, double toleranceMeters, double cosLatitude, string? designator, double maxDeviation, double excessDeviation, int passCount, int requiredPassCount, int supportedPassCountLimit)
+    private static RectificationCandidateEvaluation CreateProgressiveEvaluation(IsoXmlPartfield targetPartfield, IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, double signedStepOffsetMeters, double toleranceMeters, double cosLatitude, string? designator, double maxDeviation, double excessDeviation, int passCount, int requiredPassCount, int supportedPassCountLimit)
     {
         var effectivePassCount = Math.Min(passCount, supportedPassCountLimit);
         var signedFinalOffsetMeters = signedStepOffsetMeters * effectivePassCount;
         var fallbackAnalysis = AnalyzeProjectedPolyline(projectedSourcePoints);
-        var fallbackCandidate = BuildCandidateLine(sourceLineString, projectedSourcePoints, fallbackAnalysis.Centroid, fallbackAnalysis.Direction, signedFinalOffsetMeters, cosLatitude, designator);
+        var fallbackCandidate = BuildCandidateLine(targetPartfield, sourceLineString, projectedSourcePoints, fallbackAnalysis.Centroid, fallbackAnalysis.Direction, signedFinalOffsetMeters, cosLatitude, designator);
 
         if (!CanUsePassCount(requiredPassCount, passCount, supportedPassCountLimit))
         {
@@ -165,6 +167,7 @@ public sealed class IsoXmlGuidanceRectificationService
                 ? 0d
                 : Math.Clamp(targetResidualDeviation / currentAnalysis.MaxDeviationMeters, 0d, 1d);
             var smoothingLine = BuildProgressiveTransitionLine(
+                targetPartfield,
                 sourceLineString,
                 currentAnalysis.Entries,
                 currentAnalysis.Centroid,
@@ -179,7 +182,7 @@ public sealed class IsoXmlGuidanceRectificationService
         }
 
         var finalAnalysis = AnalyzeProjectedPolyline(currentPoints);
-        var outputCandidate = BuildCandidateLine(sourceLineString, currentPoints, finalAnalysis.Centroid, finalAnalysis.Direction, signedStepOffsetMeters, cosLatitude, designator);
+        var outputCandidate = BuildCandidateLine(targetPartfield, sourceLineString, currentPoints, finalAnalysis.Centroid, finalAnalysis.Direction, signedStepOffsetMeters, cosLatitude, designator);
         generatedLines.Add(outputCandidate);
         var finalMetrics = MeasureCandidate(projectedSourcePoints, outputCandidate, cosLatitude, Math.Abs(signedFinalOffsetMeters));
 
@@ -221,7 +224,7 @@ public sealed class IsoXmlGuidanceRectificationService
         return requiredPassCount <= passCount;
     }
 
-    private static IsoXmlLineString BuildCandidateLine(IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, ProjectedPoint centroid, ProjectedPoint direction, double signedOffsetMeters, double cosLatitude, string? designator)
+    private static IsoXmlLineString BuildCandidateLine(IsoXmlPartfield targetPartfield, IsoXmlLineString sourceLineString, IReadOnlyList<ProjectedPoint> projectedSourcePoints, ProjectedPoint centroid, ProjectedPoint direction, double signedOffsetMeters, double cosLatitude, string? designator)
     {
         var normal = new ProjectedPoint(-direction.Y, direction.X);
         var extents = projectedSourcePoints.Select(point => Dot(Subtract(point, centroid), direction)).ToArray();
@@ -231,7 +234,7 @@ public sealed class IsoXmlGuidanceRectificationService
         var start = Add(Add(centroid, new ProjectedPoint(direction.X * minExtent, direction.Y * minExtent)), offsetVector);
         var end = Add(Add(centroid, new ProjectedPoint(direction.X * maxExtent, direction.Y * maxExtent)), offsetVector);
 
-        return new IsoXmlLineString
+        var line = new IsoXmlLineString
         {
             Type = IsoXmlLineString.GuidancePathType,
             Designator = string.IsNullOrWhiteSpace(designator) ? sourceLineString.Designator : designator,
@@ -241,9 +244,12 @@ public sealed class IsoXmlGuidanceRectificationService
                 ToIsoPoint(end, cosLatitude)
             }
         };
+
+        return IsoXmlGuidanceBoundaryClipper.FitInfiniteSegmentToBoundary(targetPartfield, line);
     }
 
     private static IsoXmlLineString BuildProgressiveTransitionLine(
+        IsoXmlPartfield targetPartfield,
         IsoXmlLineString sourceLineString,
         IReadOnlyList<ProjectedPointAnalysis> projectedPointAnalyses,
         ProjectedPoint centroid,
@@ -268,7 +274,7 @@ public sealed class IsoXmlGuidanceRectificationService
             smoothedLine.Points.Add(ToIsoPoint(smoothedPoint, cosLatitude));
         }
 
-        return smoothedLine;
+        return IsoXmlGuidanceBoundaryClipper.TrimPolylineEndsToBoundary(targetPartfield, smoothedLine);
     }
 
     private static PolylineRegressionAnalysis AnalyzeProjectedPolyline(IReadOnlyList<ProjectedPoint> projectedPoints)

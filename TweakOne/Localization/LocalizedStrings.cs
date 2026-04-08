@@ -13,6 +13,8 @@ internal sealed class LocalizedStrings
 
     public string RectificationTabHeader => Resources.RectificationTabHeader;
 
+    public string CenteredRectificationTabHeader => Resources.CenteredRectificationTabHeader;
+
     public string OpenSourcePackageButton => Resources.OpenSourcePackageButton;
 
     public string NoSourceFileLoaded => Resources.NoSourceFileLoaded;
@@ -69,6 +71,8 @@ internal sealed class LocalizedStrings
 
     public string RectificationDesignatorWatermark => Resources.RectificationDesignatorWatermark;
 
+    public string RectificationDesignatorRequiredError => Resources.RectificationDesignatorRequiredError;
+
     public string RectificationOffsetMetersLabel => Resources.RectificationOffsetMetersLabel;
 
     public string RectificationRowCountLabel => Resources.RectificationRowCountLabel;
@@ -91,6 +95,16 @@ internal sealed class LocalizedStrings
 
     public string RectificationToleranceGuidance => Resources.RectificationToleranceGuidance;
 
+    public string RectificationExportModeLabel => Resources.RectificationExportModeLabel;
+
+    public string RectificationExportModeSingleLabel => Resources.RectificationExportModeSingleLabel;
+
+    public string RectificationExportModeGroupedLabel => Resources.RectificationExportModeGroupedLabel;
+
+    public string RectificationExportModeTramlinesLabel => Resources.RectificationExportModeTramlinesLabel;
+
+    public string RectificationGroupedExportHint => Resources.RectificationGroupedExportHint;
+
     public string AnalyzeRectificationButton => Resources.AnalyzeRectificationButton;
 
     public string ApplyRectifiedGuidanceButton => Resources.ApplyRectifiedGuidanceButton;
@@ -102,6 +116,46 @@ internal sealed class LocalizedStrings
     public string RectificationDescription => Resources.RectificationDescription;
 
     public string RectificationPreviewHint => Resources.RectificationPreviewHint;
+
+    public string CenteredRectificationPreviewHeader => Resources.CenteredRectificationPreviewHeader;
+
+    public string CenteredRectificationPreviewHint => Resources.CenteredRectificationPreviewHint;
+
+    public string CenteredRectificationControlsHeader => Resources.CenteredRectificationControlsHeader;
+
+    public string OpenCenteredRectificationTemplateButton => Resources.OpenCenteredRectificationTemplateButton;
+
+    public string ApplyCenteredRectificationTemplateButton => Resources.ApplyCenteredRectificationTemplateButton;
+
+    public string OpenCenteredRectificationTemplatePickerTitle => Resources.OpenCenteredRectificationTemplatePickerTitle;
+
+    public string SaveCenteredRectificationTemplatePickerTitle => Resources.SaveCenteredRectificationTemplatePickerTitle;
+
+    public string CenteredRectificationTemplateLabel => Resources.CenteredRectificationTemplateLabel;
+
+    public string CenteredRectificationAcceptedPackageLabel => Resources.CenteredRectificationAcceptedPackageLabel;
+
+    public string CenteredRectificationMarkerDistanceLabel => Resources.CenteredRectificationMarkerDistanceLabel;
+
+    public string CenteredRectificationMachineWidthLabel => Resources.CenteredRectificationMachineWidthLabel;
+
+    public string CenteredRectificationOffsetsHeader => Resources.CenteredRectificationOffsetsHeader;
+
+    public string CenteredRectificationNoTemplateLoaded => Resources.CenteredRectificationNoTemplateLoaded;
+
+    public string CenteredRectificationTemplateMissingPartfieldError => Resources.CenteredRectificationTemplateMissingPartfieldError;
+
+    public string CenteredRectificationNoPlanError => Resources.CenteredRectificationNoPlanError;
+
+    public string CenteredRectificationCorrectionLineCountError => Resources.CenteredRectificationCorrectionLineCountError;
+
+    public string CenteredRectificationNoAcceptedPackage => Resources.CenteredRectificationNoAcceptedPackage;
+
+    public string CenteredRectificationNotAvailable => Resources.CenteredRectificationNotAvailable;
+
+    public string CenteredRectificationMarkerALabel => Resources.CenteredRectificationMarkerALabel;
+
+    public string CenteredRectificationMarkerBLabel => Resources.CenteredRectificationMarkerBLabel;
 
     public string PositiveDirectionLabel => Resources.PositiveDirectionLabel;
 
@@ -149,6 +203,10 @@ internal sealed class LocalizedStrings
 
     public string FormatSavedTargetPackage(string path) => Format(Resources.StatusSavedTargetPackage, path);
 
+    public string FormatLoadedCenteredRectificationTemplate(string path) => Format(Resources.StatusLoadedCenteredRectificationTemplate, path);
+
+    public string FormatAppliedCenteredRectificationTemplate(int guidanceLineCount, int markerLineCount, string partfieldName, string path) => Format(Resources.StatusAppliedCenteredRectificationTemplate, guidanceLineCount, markerLineCount, partfieldName, path);
+
     public string FormatClonedGuidanceLine(string guidanceLine, string targetField) => Format(Resources.StatusClonedGuidanceLine, guidanceLine, targetField);
 
     public string FormatClonedAndTranslatedGuidanceLine(string guidanceLine, double offsetMeters, string targetField) => Format(Resources.StatusClonedAndTranslatedGuidanceLine, guidanceLine, offsetMeters, targetField);
@@ -156,6 +214,8 @@ internal sealed class LocalizedStrings
     public string FormatDeletedTargetGuidanceLine(string guidanceLine, string targetField) => Format(Resources.StatusDeletedTargetGuidanceLine, guidanceLine, targetField);
 
     public string FormatAppliedRectifiedGuidanceLines(int count, string targetField) => Format(Resources.StatusAppliedRectifiedGuidanceLines, count, targetField);
+
+    public string FormatAppliedRectifiedGuidanceGroups(int groupCount, int lineCount, string targetField) => Format(Resources.StatusAppliedRectifiedGuidanceGroups, groupCount, lineCount, targetField);
 
     public string FormatPartfieldSummary(ulong area, int guidanceLineCount) => Format(Resources.PartfieldSummaryFormat, area, guidanceLineCount);
 
@@ -185,6 +245,8 @@ internal sealed class LocalizedStrings
 
     public string FormatRectificationAutomaticPassCountUnsupported(int passCount, int maximumPassCount) => Format(Resources.RectificationAutomaticPassCountUnsupportedFormat, passCount, maximumPassCount);
 
+    public string FormatCenteredRectificationSummary(int passCount, double machineWidthMeters, double markerDistanceMeters, string directionLabel) => Format(Resources.CenteredRectificationSummaryFormat, passCount, machineWidthMeters, markerDistanceMeters, directionLabel);
+
     public string FormatRectificationTwoPassSummary(double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation, double excessDeviation, double smoothingShift) => Format(Resources.RectificationTwoPassSummaryFormat, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation, excessDeviation, smoothingShift);
 
     public string FormatRectificationMultiPassSummary(int passCount, double minDistance, double maxDistance, double desiredOffset, double tolerance, double maxDeviation, double excessDeviation, double excessDeviationPerPass) => Format(Resources.RectificationMultiPassSummaryFormat, passCount, minDistance, maxDistance, desiredOffset, tolerance, maxDeviation, excessDeviation, excessDeviationPerPass);
@@ -200,6 +262,10 @@ internal sealed class LocalizedStrings
     public string FormatPackageInvalidTaskDataPath(string packagePath) => Format(Resources.PackageInvalidTaskDataPath, packagePath);
 
     public string FormatOnlyGuidancePathTypeError(int guidancePathType) => Format(Resources.OnlyGuidancePathTypeError, guidancePathType);
+
+    public string RectificationTramlinesExportNotAvailable => Resources.RectificationTramlinesExportNotAvailable;
+
+    public string CenteredRectificationTemplateVersionError => Resources.CenteredRectificationTemplateVersionError;
 
     private static string Format(string format, params object?[] arguments)
     {

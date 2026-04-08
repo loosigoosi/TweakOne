@@ -76,9 +76,10 @@ public sealed class IsoXmlGuidanceRectificationServiceTests
         Assert.All(result.Candidates, candidate => Assert.True(candidate.GeneratedLines[0].Points.Count > 2));
         Assert.All(result.Candidates, candidate => Assert.Equal(2, candidate.GeneratedLines[1].Points.Count));
 
-        var positiveCandidate = Assert.Single(result.Candidates.Where(candidate => candidate.SignedApplicationOffsetMeters > 0d));
-        Assert.Equal(positiveCandidate.GeneratedLines[1].Points[0].East, positiveCandidate.GeneratedLines[0].Points[0].East, 6);
-        Assert.Equal(positiveCandidate.GeneratedLines[1].Points[^1].East, positiveCandidate.GeneratedLines[0].Points[^1].East, 6);
+        var positiveCandidate = Assert.Single(result.Candidates, candidate => candidate.SignedApplicationOffsetMeters > 0d);
+        Assert.InRange(positiveCandidate.GeneratedLines[1].Points[0].East, 6.99949d, 6.99951d);
+        Assert.InRange(positiveCandidate.GeneratedLines[1].Points[^1].East, 7.00149d, 7.00151d);
+        Assert.All(positiveCandidate.GeneratedLines[0].Points, point => Assert.InRange(point.East, 6.99999d, 7.00101d));
     }
 
     [Fact]
@@ -170,20 +171,12 @@ public sealed class IsoXmlGuidanceRectificationServiceTests
         Assert.All(result.Candidates, candidate => Assert.Equal(2, candidate.GeneratedLines[^1].Points.Count));
         Assert.All(result.Candidates, candidate => Assert.True(candidate.GeneratedLines[0].Points.Count > 2));
 
-        var positiveCandidate = Assert.Single(result.Candidates.Where(candidate => candidate.SignedApplicationOffsetMeters > 0d));
-        var smoothingDeviations = positiveCandidate.GeneratedLines
-            .Take(positiveCandidate.GeneratedLines.Count - 1)
-            .Select(GetMaxNormalDeviationMeters)
-            .ToArray();
-
-        Assert.Equal(3, smoothingDeviations.Length);
-        Assert.True(smoothingDeviations[0] > smoothingDeviations[1]);
-        Assert.True(smoothingDeviations[1] > smoothingDeviations[2]);
-        Assert.InRange(smoothingDeviations[2], 0d, 0.10d);
-
-        var firstReduction = smoothingDeviations[0] - smoothingDeviations[1];
-        var secondReduction = smoothingDeviations[1] - smoothingDeviations[2];
-        Assert.InRange(Math.Abs(firstReduction - secondReduction), 0d, 0.01d);
+        var positiveCandidate = Assert.Single(result.Candidates, candidate => candidate.SignedApplicationOffsetMeters > 0d);
+        Assert.InRange(positiveCandidate.GeneratedLines[^1].Points[0].East, 6.99949d, 6.99951d);
+        Assert.InRange(positiveCandidate.GeneratedLines[^1].Points[^1].East, 7.00149d, 7.00151d);
+        Assert.All(
+            positiveCandidate.GeneratedLines.Take(positiveCandidate.GeneratedLines.Count - 1),
+            line => Assert.All(line.Points, point => Assert.InRange(point.East, 6.99999d, 7.00101d)));
     }
 
     [Fact]
@@ -277,7 +270,7 @@ public sealed class IsoXmlGuidanceRectificationServiceTests
     }
 
     [Fact]
-    public void AnalyzeRectification_WhenTargetBoundaryIsNarrow_KeepsTheOriginalRectificationExtents()
+    public void AnalyzeRectification_WhenTargetBoundaryIsNarrow_TruncatesTheRectifiedLineToBoundaryIntersections()
     {
         var service = new IsoXmlGuidanceRectificationService();
         var target = new IsoXmlPartfield
@@ -297,10 +290,10 @@ public sealed class IsoXmlGuidanceRectificationServiceTests
 
         var result = service.AnalyzeRectification(target, source, 0.75d, 1, 0.10d, "Boundary fitted row");
 
-        var positiveCandidate = Assert.Single(result.Candidates.Where(candidate => candidate.SignedApplicationOffsetMeters > 0d));
+        var positiveCandidate = Assert.Single(result.Candidates, candidate => candidate.SignedApplicationOffsetMeters > 0d);
 
-        Assert.InRange(positiveCandidate.CandidateLine.Points[0].East, 6.99999d, 7.00001d);
-        Assert.InRange(positiveCandidate.CandidateLine.Points[1].East, 7.00099d, 7.00101d);
+        Assert.InRange(positiveCandidate.CandidateLine.Points[0].East, 7.00019d, 7.00021d);
+        Assert.InRange(positiveCandidate.CandidateLine.Points[1].East, 7.00079d, 7.00081d);
     }
 
     private static IsoXmlPolygon CreateRectanglePolygon(double south, double north, double west, double east)

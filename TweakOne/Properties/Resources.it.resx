@@ -126,6 +126,9 @@
   <data name="RectificationTabHeader" xml:space="preserve">
     <value>Rettifica</value>
   </data>
+  <data name="CenteredRectificationTabHeader" xml:space="preserve">
+    <value>Rettifica centrabile</value>
+  </data>
   <data name="OpenSourcePackageButton" xml:space="preserve">
     <value>Apri pacchetto sorgente...</value>
   </data>
@@ -207,6 +210,9 @@
   <data name="RectificationDesignatorWatermark" xml:space="preserve">
     <value>AB rettificata</value>
   </data>
+  <data name="RectificationDesignatorRequiredError" xml:space="preserve">
+    <value>Inserisci un nome della linea rettificata prima di analizzare o applicare la rettifica.</value>
+  </data>
   <data name="RectificationOffsetMetersLabel" xml:space="preserve">
     <value>Distanza inter-fila (metri)</value>
   </data>
@@ -240,6 +246,21 @@
   <data name="RectificationToleranceGuidance" xml:space="preserve">
     <value>Aumenta la tolleranza per ridurre le linee transitorie, oppure diminuiscila per richiedere più passaggi progressivi.</value>
   </data>
+  <data name="RectificationExportModeLabel" xml:space="preserve">
+    <value>Export rettifica</value>
+  </data>
+  <data name="RectificationExportModeSingleLabel" xml:space="preserve">
+    <value>Single</value>
+  </data>
+  <data name="RectificationExportModeGroupedLabel" xml:space="preserve">
+    <value>Grouped (GGP/GPN sperimentale)</value>
+  </data>
+  <data name="RectificationExportModeTramlinesLabel" xml:space="preserve">
+    <value>Tramlines</value>
+  </data>
+  <data name="RectificationGroupedExportHint" xml:space="preserve">
+    <value>L'export grouped scrive un GGP sperimentale con più pattern GPN annidati per la validazione su terminale. Le tramlines restano non disponibili finché la loro struttura non sarà definita.</value>
+  </data>
   <data name="AnalyzeRectificationButton" xml:space="preserve">
     <value>Analizza rettifica</value>
   </data>
@@ -257,6 +278,66 @@
   </data>
   <data name="RectificationPreviewHint" xml:space="preserve">
     <value>La candidata rettificata viene mostrata in verde prima di essere applicata al campo target.</value>
+  </data>
+  <data name="CenteredRectificationPreviewHeader" xml:space="preserve">
+    <value>Anteprima centrabile</value>
+  </data>
+  <data name="CenteredRectificationPreviewHint" xml:space="preserve">
+    <value>La linea dorata è il riferimento rettificato. I taglietti rossi mostrano le posizioni di centraggio A/B, il verde mostra le linee di correzione accettate e la linea selezionata è evidenziata in arancione.</value>
+  </data>
+  <data name="CenteredRectificationControlsHeader" xml:space="preserve">
+    <value>Controlli rettifica centrabile</value>
+  </data>
+  <data name="OpenCenteredRectificationTemplateButton" xml:space="preserve">
+    <value>Apri template task ISO4...</value>
+  </data>
+  <data name="ApplyCenteredRectificationTemplateButton" xml:space="preserve">
+    <value>Inietta linee centrate nel template...</value>
+  </data>
+  <data name="OpenCenteredRectificationTemplatePickerTitle" xml:space="preserve">
+    <value>Apri template task ISO4</value>
+  </data>
+  <data name="SaveCenteredRectificationTemplatePickerTitle" xml:space="preserve">
+    <value>Salva task con rettifica centrabile</value>
+  </data>
+  <data name="CenteredRectificationTemplateLabel" xml:space="preserve">
+    <value>Template task caricato</value>
+  </data>
+  <data name="CenteredRectificationAcceptedPackageLabel" xml:space="preserve">
+    <value>Pacchetto di rettifica accettato</value>
+  </data>
+  <data name="CenteredRectificationMarkerDistanceLabel" xml:space="preserve">
+    <value>Distanza marker (metri)</value>
+  </data>
+  <data name="CenteredRectificationMachineWidthLabel" xml:space="preserve">
+    <value>Larghezza macchina (metri)</value>
+  </data>
+  <data name="CenteredRectificationOffsetsHeader" xml:space="preserve">
+    <value>Shift residui</value>
+  </data>
+  <data name="CenteredRectificationNoTemplateLoaded" xml:space="preserve">
+    <value>Nessun template task ISO4 caricato.</value>
+  </data>
+  <data name="CenteredRectificationTemplateMissingPartfieldError" xml:space="preserve">
+    <value>Il template task ISO4 caricato non contiene alcun campo.</value>
+  </data>
+  <data name="CenteredRectificationNoPlanError" xml:space="preserve">
+    <value>Seleziona prima un pacchetto di rettifica centrabile da iniettare nel template.</value>
+  </data>
+  <data name="CenteredRectificationCorrectionLineCountError" xml:space="preserve">
+    <value>Il numero di linee di correzione deve corrispondere alle righe della rettifica centrabile.</value>
+  </data>
+  <data name="CenteredRectificationNoAcceptedPackage" xml:space="preserve">
+    <value>Applica prima una rettifica accettata per popolare il cassetto della rettifica centrabile.</value>
+  </data>
+  <data name="CenteredRectificationNotAvailable" xml:space="preserve">
+    <value>Non disponibile</value>
+  </data>
+  <data name="CenteredRectificationMarkerALabel" xml:space="preserve">
+    <value>Taglietto A</value>
+  </data>
+  <data name="CenteredRectificationMarkerBLabel" xml:space="preserve">
+    <value>Taglietto B</value>
   </data>
   <data name="StatusInitial" xml:space="preserve">
     <value>Carica i pacchetti ISOXML v3 sorgente e target per iniziare.</value>
@@ -288,6 +369,12 @@
   <data name="StatusSavedTargetPackage" xml:space="preserve">
     <value>Pacchetto target salvato: {0}</value>
   </data>
+  <data name="StatusLoadedCenteredRectificationTemplate" xml:space="preserve">
+    <value>Template task ISO4 caricato: {0}</value>
+  </data>
+  <data name="StatusAppliedCenteredRectificationTemplate" xml:space="preserve">
+    <value>Iniettate {0} linee guida e {1} linee marker nel campo template '{2}' e salvato '{3}'.</value>
+  </data>
   <data name="SelectSourceGuidanceLineError" xml:space="preserve">
     <value>Seleziona una linea guida sorgente.</value>
   </data>
@@ -317,6 +404,9 @@
   </data>
   <data name="StatusAppliedRectifiedGuidanceLines" xml:space="preserve">
     <value>Applicate {0} linee guida rettificate al campo target '{1}'.</value>
+  </data>
+  <data name="StatusAppliedRectifiedGuidanceGroups" xml:space="preserve">
+    <value>Applicati {0} gruppi di rettifica contenenti {1} linee al campo target '{2}'.</value>
   </data>
   <data name="UnnamedField" xml:space="preserve">
     <value>Campo senza nome</value>
@@ -380,6 +470,9 @@
   </data>
   <data name="TranslationRequiresDistinctPointsError" xml:space="preserve">
     <value>La traslazione della linea guida richiede punti iniziale e finale distinti.</value>
+  </data>
+  <data name="CenteredRectificationTemplateVersionError" xml:space="preserve">
+    <value>Il template selezionato non è un pacchetto ISOXML v4.</value>
   </data>
   <data name="RectifiedPositiveSmoothedGuidancePathFormat" xml:space="preserve">
     <value>{0} smoothed (+)</value>
