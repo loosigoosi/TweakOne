@@ -8,6 +8,7 @@ namespace TweakOne.IsoXml.V3;
 public sealed class IsoXmlCenteredRectificationTemplateInjectionService
 {
     private static readonly LocalizedStrings Strings = LocalizedStrings.Instance;
+    private readonly IsoXmlGuidancePathGenerator _generator = new();
 
     /// <summary>
     /// Injects the centered rectification guidance lines and marker cuts into a template task document.
@@ -29,29 +30,37 @@ public sealed class IsoXmlCenteredRectificationTemplateInjectionService
         }
 
         var targetPartfield = ResolveTargetPartfield(templateDocument, preferredPartfieldIdentifier, preferredPartfieldDesignator);
-        var injectedGuidanceLines = new List<IsoXmlLineString>(correctionLines.Count + 2)
+        var existingGuidanceIds = new HashSet<string>(EnumerateGuidanceIds(templateDocument), StringComparer.Ordinal);
+        var injectedMarkerLines = new List<IsoXmlLineString>(2)
         {
             plan.MarkerLineA.DeepClone(),
             plan.MarkerLineB.DeepClone()
         };
+
+        foreach (var markerLine in injectedMarkerLines)
+        {
+            targetPartfield.LineStrings.Add(markerLine);
+        }
+
+        var injectedGuidanceLines = new List<IsoXmlLineString>(correctionLines.Count);
+        var injectedGuidanceGroups = new List<IsoXmlGuidanceGroup>(correctionLines.Count);
 
         for (var index = 0; index < correctionLines.Count; index++)
         {
             var guidanceLine = correctionLines[index].DeepClone();
             guidanceLine.Designator = plan.OffsetRows[index].SuggestedDesignator;
             injectedGuidanceLines.Add(guidanceLine);
-        }
-
-        foreach (var line in injectedGuidanceLines)
-        {
-            targetPartfield.LineStrings.Add(line);
+            var guidanceGroup = _generator.CreateGroupedRectification(targetPartfield, new[] { guidanceLine }, guidanceLine.Designator);
+            AssignDocumentWideGuidanceIds(guidanceGroup, existingGuidanceIds);
+            injectedGuidanceGroups.Add(guidanceGroup);
         }
 
         return new IsoXmlCenteredRectificationTemplateInjectionResult(
             targetPartfield,
             correctionLines.Count,
             2,
-            injectedGuidanceLines);
+            injectedMarkerLines.Concat(injectedGuidanceLines).ToArray(),
+            injectedGuidanceGroups);
     }
 
     private static IsoXmlPartfield ResolveTargetPartfield(IsoXmlTaskDataDocument templateDocument, string? preferredPartfieldIdentifier, string? preferredPartfieldDesignator)
@@ -81,10 +90,43 @@ public sealed class IsoXmlCenteredRectificationTemplateInjectionService
 
         return templateDocument.Partfields[0];
     }
+
+    private static IEnumerable<string> EnumerateGuidanceIds(IsoXmlTaskDataDocument templateDocument)
+    {
+        return templateDocument.Partfields
+            .SelectMany(static partfield => partfield.GuidanceGroups)
+            .Select(static group => group.Id)
+            .Concat(templateDocument.Partfields.SelectMany(static partfield => partfield.GuidanceGroups.SelectMany(group => group.GuidancePatterns.Select(pattern => pattern.Id))))
+            .Where(static id => !string.IsNullOrWhiteSpace(id))
+            .Select(static id => id!);
+    }
+
+    private static void AssignDocumentWideGuidanceIds(IsoXmlGuidanceGroup guidanceGroup, ISet<string> existingGuidanceIds)
+    {
+        guidanceGroup.Id = GetNextGuidanceId(existingGuidanceIds, "GGP");
+
+        foreach (var guidancePattern in guidanceGroup.GuidancePatterns)
+        {
+            guidancePattern.Id = GetNextGuidanceId(existingGuidanceIds, "GPN");
+        }
+    }
+
+    private static string GetNextGuidanceId(ISet<string> existingGuidanceIds, string prefix)
+    {
+        for (var index = 1; ; index++)
+        {
+            var id = $"{prefix}{index}";
+            if (existingGuidanceIds.Add(id))
+            {
+                return id;
+            }
+        }
+    }
 }
 
 public sealed record IsoXmlCenteredRectificationTemplateInjectionResult(
     IsoXmlPartfield TargetPartfield,
     int InjectedGuidanceLineCount,
     int InjectedMarkerLineCount,
-    IReadOnlyList<IsoXmlLineString> InjectedLines);
+    IReadOnlyList<IsoXmlLineString> InjectedLines,
+    IReadOnlyList<IsoXmlGuidanceGroup> InjectedGuidanceGroups);

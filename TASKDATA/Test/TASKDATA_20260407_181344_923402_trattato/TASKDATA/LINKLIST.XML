@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ISO11783LinkList DataTransferOrigin="1" ManagementSoftwareManufacturer="AGCO GmbH" ManagementSoftwareVersion="1.0.41" VersionMajor="4" VersionMinor="3">
+  <LGP A="LGP-1" B="1">
+    <LNK A="TSK207493" B="{07f71f49-4e6b-4217-baaa-a872b7fd1cc5}" />
+    <LNK A="CTP606" B="{4ca8bdc7-8659-4ad0-adba-ca7b74f8514e}" />
+    <LNK A="CTR67" B="{81f58df8-ce0b-4b4c-a873-8bad1abd3ef0}" />
+    <LNK A="FRM69" B="{2ca9d324-aad6-4f58-ab3c-bdb214ee3ac8}" />
+    <LNK A="CPC11157" B="{dd80f9f8-32ac-11f1-a672-a170c8675589}" />
+    <LNK A="DVC442" B="{66e75ea8-32ad-11f1-a672-a170c8675589}" />
+    <LNK A="DET1" B="{66e8b758-32ad-11f1-a672-a170c8675589}" />
+    <LNK A="DET11347" B="{67d76ef2-32ad-11f1-a672-a170c8675589}" />
+    <LNK A="DET11348" B="{682f45f0-32ad-11f1-a672-a170c8675589}" />
+    <LNK A="DET11349" B="{70f990be-32ad-11f1-a672-a170c8675589}" />
+    <LNK A="PFD123" B="{4470395a-db3f-4c7a-a1cf-57e6653acbc6}" />
+    <LNK A="PLN51" B="{d16ba47d-3151-11ef-a99d-b30fd07ab3ca}" />
+    <LNK A="PLN60" B="{844b11c0-a8f6-11ef-bd18-070c32cdc21d}" />
+    <LNK A="PLN38" B="{d00c8098-3781-4d0d-986e-3f38e45fd75c}" />
+    <LNK A="GGP1219" B="{5f266d69-1ff0-4749-b09e-b6b69d73b890}" />
+    <LNK A="GPN1221" B="{76acdc3b-edce-4ee8-a47f-c29571f75486}" />
+    <LNK A="GGP566" B="{cd63b5f8-32de-11ef-b76d-03b32e393e50}" />
+    <LNK A="GPN568" B="{1202a8de-3b87-40f8-bd56-5acb0bf53fa6}" />
+    <LNK A="GGP226" B="{1f6e1084-3152-11ef-b714-2f4be75038ef}" />
+    <LNK A="GPN226" B="{11865f6e-d434-42a2-a464-7a3d4ee17f78}" />
+    <LNK A="GGP224" B="{1f59d916-3152-11ef-b714-2f4be75038ef}" />
+    <LNK A="GPN224" B="{5903cda8-10bd-4d53-877c-0b1980b40058}" />
+    <LNK A="GGP757" B="{a99b81d6-3c80-11ef-b742-d7ae2dbec041}" />
+    <LNK A="GPN762" B="{fb7a1252-2ec0-4072-a64d-66d7ff3f6f3e}" />
+    <LNK A="GGP1" B="{afe5f2ec-2863-4eda-ad9f-63154277201c}" />
+    <LNK A="GPN1" B="{ab9d58ad-f662-4717-8d5f-d323b712ca92}" />
+    <LNK A="GGP2" B="{8d4c2c0a-4c3e-44bc-aea4-c76cf0d8b40d}" />
+    <LNK A="GPN2" B="{58c74516-b72e-4cd3-99e0-87c6b092d3b4}" />
+    <LNK A="GGP3" B="{424a8b77-561d-4a55-bc78-6097f12abacd}" />
+    <LNK A="GPN3" B="{c0b145dc-2d5e-4bd4-9f3b-55d0b5af7720}" />
+    <LNK A="GGP4" B="{4df31306-7b04-45f7-8a97-328e80a4e5e8}" />
+    <LNK A="GPN4" B="{07c64acc-e6c6-4cf5-9104-02ad9af7bf3d}" />
+    <LNK A="GGP5" B="{9af88224-2e10-4aef-97c2-ec148d71d8ca}" />
+    <LNK A="GPN5" B="{9eccca30-987f-47b3-a7ad-137712b41ff6}" />
+  </LGP>
+</ISO11783LinkList>

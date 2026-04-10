@@ -17,6 +17,7 @@ internal static class Resources
     public static string NoSourceFileLoaded => GetString(nameof(NoSourceFileLoaded));
     public static string OpenTargetPackageButton => GetString(nameof(OpenTargetPackageButton));
     public static string SaveTargetPackageButton => GetString(nameof(SaveTargetPackageButton));
+    public static string SaveSelectedTargetFieldPackageButton => GetString(nameof(SaveSelectedTargetFieldPackageButton));
     public static string NoTargetFileLoaded => GetString(nameof(NoTargetFileLoaded));
     public static string SourceFieldHeader => GetString(nameof(SourceFieldHeader));
     public static string TargetFieldHeader => GetString(nameof(TargetFieldHeader));
@@ -68,9 +69,13 @@ internal static class Resources
     public static string CenteredRectificationPreviewHint => GetString(nameof(CenteredRectificationPreviewHint));
     public static string CenteredRectificationControlsHeader => GetString(nameof(CenteredRectificationControlsHeader));
     public static string OpenCenteredRectificationTemplateButton => GetString(nameof(OpenCenteredRectificationTemplateButton));
+    public static string ApplyCenteredRectificationSourcePackageButton => GetString(nameof(ApplyCenteredRectificationSourcePackageButton));
+    public static string ExportCenteredRectificationFieldPackageButton => GetString(nameof(ExportCenteredRectificationFieldPackageButton));
     public static string ApplyCenteredRectificationTemplateButton => GetString(nameof(ApplyCenteredRectificationTemplateButton));
     public static string OpenCenteredRectificationTemplatePickerTitle => GetString(nameof(OpenCenteredRectificationTemplatePickerTitle));
     public static string SaveCenteredRectificationTemplatePickerTitle => GetString(nameof(SaveCenteredRectificationTemplatePickerTitle));
+    public static string SaveCenteredRectificationSourcePackagePickerTitle => GetString(nameof(SaveCenteredRectificationSourcePackagePickerTitle));
+    public static string ExportCenteredRectificationFieldPackagePickerTitle => GetString(nameof(ExportCenteredRectificationFieldPackagePickerTitle));
     public static string CenteredRectificationTemplateLabel => GetString(nameof(CenteredRectificationTemplateLabel));
     public static string CenteredRectificationAcceptedPackageLabel => GetString(nameof(CenteredRectificationAcceptedPackageLabel));
     public static string CenteredRectificationMarkerDistanceLabel => GetString(nameof(CenteredRectificationMarkerDistanceLabel));
@@ -87,6 +92,7 @@ internal static class Resources
     public static string StatusInitial => GetString(nameof(StatusInitial));
     public static string SaveTargetBeforeLoadingError => GetString(nameof(SaveTargetBeforeLoadingError));
     public static string SaveTargetPackagePickerTitle => GetString(nameof(SaveTargetPackagePickerTitle));
+    public static string SaveSelectedTargetFieldPackagePickerTitle => GetString(nameof(SaveSelectedTargetFieldPackagePickerTitle));
     public static string OpenSourcePackagePickerTitle => GetString(nameof(OpenSourcePackagePickerTitle));
     public static string OpenTargetPackagePickerTitle => GetString(nameof(OpenTargetPackagePickerTitle));
     public static string IsoXmlPackageFileType => GetString(nameof(IsoXmlPackageFileType));
@@ -96,6 +102,8 @@ internal static class Resources
     public static string StatusSavedTargetPackage => GetString(nameof(StatusSavedTargetPackage));
     public static string StatusLoadedCenteredRectificationTemplate => GetString(nameof(StatusLoadedCenteredRectificationTemplate));
     public static string StatusAppliedCenteredRectificationTemplate => GetString(nameof(StatusAppliedCenteredRectificationTemplate));
+    public static string StatusAppliedCenteredRectificationSourcePackage => GetString(nameof(StatusAppliedCenteredRectificationSourcePackage));
+    public static string SingleFieldExportPartfieldNotFoundError => GetString(nameof(SingleFieldExportPartfieldNotFoundError));
     public static string SelectSourceGuidanceLineError => GetString(nameof(SelectSourceGuidanceLineError));
     public static string SelectTargetFieldError => GetString(nameof(SelectTargetFieldError));
     public static string SelectTargetGuidanceLineError => GetString(nameof(SelectTargetGuidanceLineError));

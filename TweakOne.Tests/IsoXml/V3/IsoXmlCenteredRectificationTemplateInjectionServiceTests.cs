@@ -8,14 +8,29 @@ namespace TweakOne.Tests.IsoXml.V3;
 public sealed class IsoXmlCenteredRectificationTemplateInjectionServiceTests
 {
     [Fact]
-    public void Inject_WhenMatchingPartfieldExists_AddsMarkerLinesAndSuggestedGuidanceLinesToThatField()
+    public void Inject_WhenMatchingPartfieldExists_AddsMarkerLinesAndWrapsSuggestedGuidanceLinesInGroups()
     {
         var service = new IsoXmlCenteredRectificationTemplateInjectionService();
         var templateDocument = new IsoXmlTaskDataDocument
         {
             Partfields =
             {
-                new IsoXmlPartfield { Id = "PFD1", Designator = "Other" },
+                new IsoXmlPartfield
+                {
+                    Id = "PFD1",
+                    Designator = "Other",
+                    GuidanceGroups =
+                    {
+                        new IsoXmlGuidanceGroup
+                        {
+                            Id = "GGP1",
+                            GuidancePatterns =
+                            {
+                                new IsoXmlGuidancePattern { Id = "GPN1" }
+                            }
+                        }
+                    }
+                },
                 new IsoXmlPartfield { Id = "PFD2", Designator = "TEST" }
             }
         };
@@ -32,8 +47,8 @@ public sealed class IsoXmlCenteredRectificationTemplateInjectionServiceTests
             CreateMarkerLine("Taglietto B", (45.000005d, 7.000900d), (45.000015d, 7.000900d)),
             new[]
             {
-                new IsoXmlCenteredRectificationOffsetRow(1, "Pass 1", 12, 12, "Est rettifica(1)_A+12_B+12"),
-                new IsoXmlCenteredRectificationOffsetRow(2, "Pass 2", 95, 95, "Est rettifica(2)_A+95_B+95")
+                new IsoXmlCenteredRectificationOffsetRow(1, "Pass 1", 12, 12, "Est rettifica_(1)_A+12_B+12"),
+                new IsoXmlCenteredRectificationOffsetRow(2, "Pass 2", 95, 95, "Est rettifica_Retta_A+95_B+95")
             });
 
         var result = service.Inject(templateDocument, "PFD2", "TEST", plan, correctionLines);
@@ -44,10 +59,33 @@ public sealed class IsoXmlCenteredRectificationTemplateInjectionServiceTests
         Assert.Collection(
             templateDocument.Partfields[1].LineStrings.Select(static line => line.Designator),
             designator => Assert.Equal("Taglietto A", designator),
-            designator => Assert.Equal("Taglietto B", designator),
-            designator => Assert.Equal("Est rettifica(1)_A+12_B+12", designator),
-            designator => Assert.Equal("Est rettifica(2)_A+95_B+95", designator));
+            designator => Assert.Equal("Taglietto B", designator));
+        Assert.Collection(
+            templateDocument.Partfields[1].GuidanceGroups,
+            group =>
+            {
+                Assert.Equal("Est rettifica_(1)_A+12_B+12", group.Designator);
+                Assert.Equal("GGP2", group.Id);
+                var pattern = Assert.Single(group.GuidancePatterns);
+                Assert.Equal("GPN2", pattern.Id);
+                Assert.Equal(IsoXmlGuidancePattern.AbGuidancePatternType, pattern.Type);
+                Assert.Equal("Est rettifica_(1)_A+12_B+12", pattern.Designator);
+                Assert.NotNull(pattern.LineString);
+                Assert.Equal("Est rettifica_(1)_A+12_B+12", pattern.LineString!.Designator);
+            },
+            group =>
+            {
+                Assert.Equal("Est rettifica_Retta_A+95_B+95", group.Designator);
+                Assert.Equal("GGP3", group.Id);
+                var pattern = Assert.Single(group.GuidancePatterns);
+                Assert.Equal("GPN3", pattern.Id);
+                Assert.Equal(IsoXmlGuidancePattern.AbGuidancePatternType, pattern.Type);
+                Assert.Equal("Est rettifica_Retta_A+95_B+95", pattern.Designator);
+                Assert.NotNull(pattern.LineString);
+                Assert.Equal("Est rettifica_Retta_A+95_B+95", pattern.LineString!.Designator);
+            });
         Assert.Empty(templateDocument.Partfields[0].LineStrings);
+        Assert.Single(templateDocument.Partfields[0].GuidanceGroups);
     }
 
     [Fact]
@@ -63,7 +101,7 @@ public sealed class IsoXmlCenteredRectificationTemplateInjectionServiceTests
             CreateMarkerLine("Taglietto B", (45.000005d, 7.000900d), (45.000015d, 7.000900d)),
             new[]
             {
-                new IsoXmlCenteredRectificationOffsetRow(1, "Pass 1", 12, 12, "Est rettifica(1)_A+12_B+12")
+                new IsoXmlCenteredRectificationOffsetRow(1, "Pass 1", 12, 12, "Est rettifica_Retta_A+12_B+12")
             });
         var correctionLines = new[]
         {

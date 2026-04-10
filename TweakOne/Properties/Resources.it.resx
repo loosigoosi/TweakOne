@@ -141,6 +141,9 @@
   <data name="SaveTargetPackageButton" xml:space="preserve">
     <value>Salva pacchetto target...</value>
   </data>
+  <data name="SaveSelectedTargetFieldPackageButton" xml:space="preserve">
+    <value>Esporta solo il campo target selezionato...</value>
+  </data>
   <data name="NoTargetFileLoaded" xml:space="preserve">
     <value>Nessun file target caricato</value>
   </data>
@@ -291,6 +294,12 @@
   <data name="OpenCenteredRectificationTemplateButton" xml:space="preserve">
     <value>Apri template task ISO4...</value>
   </data>
+  <data name="ApplyCenteredRectificationSourcePackageButton" xml:space="preserve">
+    <value>Salva linee centrate nel pacchetto sorgente...</value>
+  </data>
+  <data name="ExportCenteredRectificationFieldPackageButton" xml:space="preserve">
+    <value>Esporta solo il campo centrato...</value>
+  </data>
   <data name="ApplyCenteredRectificationTemplateButton" xml:space="preserve">
     <value>Inietta linee centrate nel template...</value>
   </data>
@@ -299,6 +308,12 @@
   </data>
   <data name="SaveCenteredRectificationTemplatePickerTitle" xml:space="preserve">
     <value>Salva task con rettifica centrabile</value>
+  </data>
+  <data name="SaveCenteredRectificationSourcePackagePickerTitle" xml:space="preserve">
+    <value>Salva pacchetto campo con rettifica centrabile</value>
+  </data>
+  <data name="ExportCenteredRectificationFieldPackagePickerTitle" xml:space="preserve">
+    <value>Salva pacchetto del solo campo con rettifica centrabile</value>
   </data>
   <data name="CenteredRectificationTemplateLabel" xml:space="preserve">
     <value>Template task caricato</value>
@@ -374,6 +389,12 @@
   </data>
   <data name="StatusAppliedCenteredRectificationTemplate" xml:space="preserve">
     <value>Iniettate {0} linee guida e {1} linee marker nel campo template '{2}' e salvato '{3}'.</value>
+  </data>
+  <data name="StatusAppliedCenteredRectificationSourcePackage" xml:space="preserve">
+    <value>Aggiunte {0} linee guida centrate e {1} linee marker al campo sorgente '{2}' e salvato '{3}'.</value>
+  </data>
+  <data name="SingleFieldExportPartfieldNotFoundError" xml:space="preserve">
+    <value>Il campo selezionato non è stato trovato nel pacchetto.</value>
   </data>
   <data name="SelectSourceGuidanceLineError" xml:space="preserve">
     <value>Seleziona una linea guida sorgente.</value>

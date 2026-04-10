@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using TweakOne.IsoXml.V3;
 using TweakOne.Localization;
 using TweakOne.ViewModels;
 
@@ -16,6 +17,7 @@ public partial class MainWindow : Window
 {
     private static readonly LocalizedStrings Strings = LocalizedStrings.Instance;
     private const double WheelZoomStep = 0.25d;
+    private readonly IsoXmlSingleFieldPackageExportService _singleFieldPackageExportService = new();
 
     private IsoXmlTaskDataPackage? _sourcePackage;
     private IsoXmlTaskDataPackage? _targetPackage;
@@ -84,6 +86,51 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void SaveSelectedTargetFieldPackage_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_targetPackage is null)
+            {
+                throw new InvalidOperationException(Strings.SaveTargetBeforeLoadingError);
+            }
+
+            var selectedTargetPartfield = ViewModel.SelectedTargetPartfield ?? throw new InvalidOperationException(Strings.SelectTargetFieldError);
+            var exportPackage = ClonePackage(_targetPackage);
+            var suggestedFileName = string.IsNullOrWhiteSpace(ViewModel.TargetFilePath)
+                ? Strings.DefaultTargetPackageFileName
+                : Path.GetFileName(ViewModel.TargetFilePath);
+
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Strings.SaveSelectedTargetFieldPackagePickerTitle,
+                SuggestedFileName = suggestedFileName,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType(Strings.IsoXmlPackageFileType)
+                    {
+                        Patterns = new[] { "*.zip" },
+                        MimeTypes = new[] { "application/zip" }
+                    }
+                }
+            }).ConfigureAwait(true);
+
+            var localPath = file?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(localPath))
+            {
+                return;
+            }
+
+            ViewModel.SaveTargetDocument(exportPackage.TaskDataXmlPath, localPath);
+            _singleFieldPackageExportService.PreparePackage(exportPackage, selectedTargetPartfield.Identifier, selectedTargetPartfield.DisplayName);
+            IsoXmlTaskDataPackageService.SaveAs(exportPackage, localPath);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
+        {
+            ViewModel.StatusMessage = exception.Message;
+        }
+    }
+
     private async void ApplyCenteredRectificationTemplate_Click(object? sender, RoutedEventArgs e)
     {
         try
@@ -117,8 +164,96 @@ public partial class MainWindow : Window
                 return;
             }
 
-            ViewModel.ApplyCenteredRectificationTemplate(_centeredRectificationTemplatePackage.TaskDataXmlPath, localPath);
+            ViewModel.ApplyCenteredRectificationTemplate(_centeredRectificationTemplatePackage.TaskDataXmlPath, localPath, _centeredRectificationTemplatePackage.LinkListXmlPath, _centeredRectificationTemplatePackage.AgcoPropJsonPath);
             IsoXmlTaskDataPackageService.SaveAs(_centeredRectificationTemplatePackage, localPath);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
+        {
+            ViewModel.StatusMessage = exception.Message;
+        }
+    }
+
+    private async void ApplyCenteredRectificationSourcePackage_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_sourcePackage is null)
+            {
+                throw new InvalidOperationException(Strings.NoSourceFileLoaded);
+            }
+
+            var exportPackage = ClonePackage(_sourcePackage);
+            var suggestedFileName = string.IsNullOrWhiteSpace(_sourcePackage.PackagePath)
+                ? Strings.DefaultTargetPackageFileName
+                : Path.GetFileName(_sourcePackage.PackagePath);
+
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Strings.SaveCenteredRectificationSourcePackagePickerTitle,
+                SuggestedFileName = suggestedFileName,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType(Strings.IsoXmlPackageFileType)
+                    {
+                        Patterns = new[] { "*.zip" },
+                        MimeTypes = new[] { "application/zip" }
+                    }
+                }
+            }).ConfigureAwait(true);
+
+            var localPath = file?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(localPath))
+            {
+                return;
+            }
+
+            ViewModel.ApplyCenteredRectificationSourcePackage(exportPackage.TaskDataXmlPath, localPath);
+            IsoXmlTaskDataPackageService.SaveAs(exportPackage, localPath);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
+        {
+            ViewModel.StatusMessage = exception.Message;
+        }
+    }
+
+    private async void ExportCenteredRectificationFieldPackage_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_sourcePackage is null)
+            {
+                throw new InvalidOperationException(Strings.NoSourceFileLoaded);
+            }
+
+            var centeredPackage = ViewModel.SelectedCenteredRectificationPackage ?? throw new InvalidOperationException(Strings.CenteredRectificationNoPlanError);
+            var exportPackage = ClonePackage(_sourcePackage);
+            var suggestedFileName = string.IsNullOrWhiteSpace(_sourcePackage.PackagePath)
+                ? Strings.DefaultTargetPackageFileName
+                : Path.GetFileName(_sourcePackage.PackagePath);
+
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Strings.ExportCenteredRectificationFieldPackagePickerTitle,
+                SuggestedFileName = suggestedFileName,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType(Strings.IsoXmlPackageFileType)
+                    {
+                        Patterns = new[] { "*.zip" },
+                        MimeTypes = new[] { "application/zip" }
+                    }
+                }
+            }).ConfigureAwait(true);
+
+            var localPath = file?.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(localPath))
+            {
+                return;
+            }
+
+            ViewModel.ApplyCenteredRectificationSourcePackage(exportPackage.TaskDataXmlPath, localPath);
+            _singleFieldPackageExportService.PreparePackage(exportPackage, centeredPackage.SourcePartfield.Identifier, centeredPackage.SourcePartfield.DisplayName);
+            IsoXmlTaskDataPackageService.SaveAs(exportPackage, localPath);
         }
         catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException)
         {
@@ -518,7 +653,9 @@ public partial class MainWindow : Window
         var clonedTaskDataDirectoryPath = Path.Combine(clonedExtractionRootPath, relativeTaskDataDirectoryPath);
         var clonedTaskDataXmlPath = Path.Combine(clonedTaskDataDirectoryPath, Path.GetFileName(sourcePackage.TaskDataXmlPath));
 
-        return new IsoXmlTaskDataPackage(sourcePackage.PackagePath, clonedExtractionRootPath, clonedTaskDataDirectoryPath, clonedTaskDataXmlPath);
+        var clonedLinkListXmlPath = Path.Combine(clonedExtractionRootPath, Path.GetRelativePath(sourcePackage.ExtractionRootPath, sourcePackage.LinkListXmlPath));
+        var clonedAgcoPropJsonPath = Path.Combine(clonedExtractionRootPath, Path.GetRelativePath(sourcePackage.ExtractionRootPath, sourcePackage.AgcoPropJsonPath));
+        return new IsoXmlTaskDataPackage(sourcePackage.PackagePath, clonedExtractionRootPath, clonedTaskDataDirectoryPath, clonedTaskDataXmlPath, clonedLinkListXmlPath, clonedAgcoPropJsonPath);
     }
 
     private static void CopyDirectory(string sourceDirectoryPath, string destinationDirectoryPath)

@@ -26,10 +26,10 @@ public sealed class IsoXmlCenteredRectificationServiceTests
         Assert.Equal(2, plan.OffsetRows.Count);
         Assert.Equal(12, plan.OffsetRows[0].OffsetACentimeters);
         Assert.Equal(12, plan.OffsetRows[0].OffsetBCentimeters);
-        Assert.Equal("Est rettifica(1)_A+12_B+12", plan.OffsetRows[0].SuggestedDesignator);
+        Assert.Equal("Est rettifica_(1)_A+12_B+12", plan.OffsetRows[0].SuggestedDesignator);
         Assert.Equal(95, plan.OffsetRows[1].OffsetACentimeters);
         Assert.Equal(95, plan.OffsetRows[1].OffsetBCentimeters);
-        Assert.Equal("Est rettifica(2)_A+95_B+95", plan.OffsetRows[1].SuggestedDesignator);
+        Assert.Equal("Est rettifica_Retta_A+95_B+95", plan.OffsetRows[1].SuggestedDesignator);
     }
 
     [Fact]
@@ -50,6 +50,7 @@ public sealed class IsoXmlCenteredRectificationServiceTests
         var markerAMidpoint = Midpoint(plan.MarkerLineA);
         var markerBMidpoint = Midpoint(plan.MarkerLineB);
 
+        Assert.Equal("Est rettifica_Retta_A+00_B+00", plan.OffsetRows[0].SuggestedDesignator);
         Assert.InRange(DistanceMeters(new IsoXmlPoint { Type = 2, North = 45.000000d, East = 7.00020d }, markerAMidpoint), 8.5d, 9.5d);
         Assert.InRange(DistanceMeters(new IsoXmlPoint { Type = 2, North = 45.000000d, East = 7.00234d }, markerBMidpoint), 8.5d, 9.5d);
     }
@@ -73,10 +74,10 @@ public sealed class IsoXmlCenteredRectificationServiceTests
 
         Assert.Equal(-12, plan.OffsetRows[0].OffsetACentimeters);
         Assert.Equal(-12, plan.OffsetRows[0].OffsetBCentimeters);
-        Assert.Equal("Ovest rettifica(1)_A-12_B-12", plan.OffsetRows[0].SuggestedDesignator);
+        Assert.Equal("Ovest rettifica_(1)_A-12_B-12", plan.OffsetRows[0].SuggestedDesignator);
         Assert.Equal(-95, plan.OffsetRows[1].OffsetACentimeters);
         Assert.Equal(-95, plan.OffsetRows[1].OffsetBCentimeters);
-        Assert.Equal("Ovest rettifica(2)_A-95_B-95", plan.OffsetRows[1].SuggestedDesignator);
+        Assert.Equal("Ovest rettifica_Retta_A-95_B-95", plan.OffsetRows[1].SuggestedDesignator);
     }
 
     private static IsoXmlPolygon CreateRectanglePolygon(double south, double north, double west, double east)

@@ -141,6 +141,9 @@
   <data name="SaveTargetPackageButton" xml:space="preserve">
     <value>Save target package...</value>
   </data>
+  <data name="SaveSelectedTargetFieldPackageButton" xml:space="preserve">
+    <value>Export selected target field...</value>
+  </data>
   <data name="NoTargetFileLoaded" xml:space="preserve">
     <value>No target file loaded</value>
   </data>
@@ -291,6 +294,12 @@
   <data name="OpenCenteredRectificationTemplateButton" xml:space="preserve">
     <value>Open ISO4 task template...</value>
   </data>
+  <data name="ApplyCenteredRectificationSourcePackageButton" xml:space="preserve">
+    <value>Save centered guidance into source package...</value>
+  </data>
+  <data name="ExportCenteredRectificationFieldPackageButton" xml:space="preserve">
+    <value>Export centered field only...</value>
+  </data>
   <data name="ApplyCenteredRectificationTemplateButton" xml:space="preserve">
     <value>Inject centered guidance into template...</value>
   </data>
@@ -299,6 +308,12 @@
   </data>
   <data name="SaveCenteredRectificationTemplatePickerTitle" xml:space="preserve">
     <value>Save centered rectification task</value>
+  </data>
+  <data name="SaveCenteredRectificationSourcePackagePickerTitle" xml:space="preserve">
+    <value>Save centered rectification field package</value>
+  </data>
+  <data name="ExportCenteredRectificationFieldPackagePickerTitle" xml:space="preserve">
+    <value>Save centered single-field package</value>
   </data>
   <data name="CenteredRectificationTemplateLabel" xml:space="preserve">
     <value>Loaded task template</value>
@@ -374,6 +389,12 @@
   </data>
   <data name="StatusAppliedCenteredRectificationTemplate" xml:space="preserve">
     <value>Injected {0} guidance lines and {1} marker lines into template field '{2}' and saved '{3}'.</value>
+  </data>
+  <data name="StatusAppliedCenteredRectificationSourcePackage" xml:space="preserve">
+    <value>Added {0} centered guidance lines and {1} marker lines to source field '{2}' and saved '{3}'.</value>
+  </data>
+  <data name="SingleFieldExportPartfieldNotFoundError" xml:space="preserve">
+    <value>The selected field was not found in the package.</value>
   </data>
   <data name="SelectSourceGuidanceLineError" xml:space="preserve">
     <value>Select a source guidance line.</value>

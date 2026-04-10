@@ -8,17 +8,21 @@ namespace TweakOne;
 
 internal sealed class IsoXmlTaskDataPackage
 {
-    public IsoXmlTaskDataPackage(string packagePath, string extractionRootPath, string taskDataDirectoryPath, string taskDataXmlPath)
+    public IsoXmlTaskDataPackage(string packagePath, string extractionRootPath, string taskDataDirectoryPath, string taskDataXmlPath, string linkListXmlPath, string agcoPropJsonPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(packagePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(extractionRootPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(taskDataDirectoryPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(taskDataXmlPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(linkListXmlPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(agcoPropJsonPath);
 
         PackagePath = packagePath;
         ExtractionRootPath = extractionRootPath;
         TaskDataDirectoryPath = taskDataDirectoryPath;
         TaskDataXmlPath = taskDataXmlPath;
+        LinkListXmlPath = linkListXmlPath;
+        AgcoPropJsonPath = agcoPropJsonPath;
     }
 
     public string PackagePath { get; }
@@ -28,6 +32,10 @@ internal sealed class IsoXmlTaskDataPackage
     public string TaskDataDirectoryPath { get; }
 
     public string TaskDataXmlPath { get; }
+
+    public string LinkListXmlPath { get; }
+
+    public string AgcoPropJsonPath { get; }
 }
 
 internal static class IsoXmlTaskDataPackageService
@@ -59,7 +67,17 @@ internal static class IsoXmlTaskDataPackageService
         var taskDataDirectoryPath = Path.GetDirectoryName(taskDataXmlPath)
             ?? throw new InvalidOperationException(Strings.FormatPackageInvalidTaskDataPath(packagePath));
 
-        return new IsoXmlTaskDataPackage(packagePath, extractionRootPath, taskDataDirectoryPath, taskDataXmlPath);
+        var linkListXmlPath = Directory
+            .EnumerateFiles(extractionRootPath, "LINKLIST.XML", SearchOption.AllDirectories)
+            .SingleOrDefault()
+            ?? Path.Combine(extractionRootPath, "LINKLIST.XML");
+
+        var agcoPropJsonPath = Directory
+            .EnumerateFiles(extractionRootPath, "AGCOPROP.JSN", SearchOption.AllDirectories)
+            .SingleOrDefault()
+            ?? Path.Combine(taskDataDirectoryPath, "AGCOPROP.JSN");
+
+        return new IsoXmlTaskDataPackage(packagePath, extractionRootPath, taskDataDirectoryPath, taskDataXmlPath, linkListXmlPath, agcoPropJsonPath);
     }
 
     public static void SaveAs(IsoXmlTaskDataPackage package, string destinationPackagePath)

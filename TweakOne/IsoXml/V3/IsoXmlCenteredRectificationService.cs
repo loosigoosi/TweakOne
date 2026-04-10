@@ -66,7 +66,7 @@ public sealed class IsoXmlCenteredRectificationService
             : baseName.Trim();
 
         var offsetRows = correctionLines
-            .Select((line, index) => CreateOffsetRow(IsoXmlGuidanceBoundaryClipper.TrimPolylineEndsToBoundary(partfield, line), index + 1, resolvedBaseName, machineWidthMeters, cosLatitude, markerA, markerB))
+            .Select((line, index) => CreateOffsetRow(IsoXmlGuidanceBoundaryClipper.TrimPolylineEndsToBoundary(partfield, line), index + 1, correctionLines.Count, resolvedBaseName, machineWidthMeters, cosLatitude, markerA, markerB))
             .ToArray();
 
         return new IsoXmlCenteredRectificationPlan(
@@ -78,7 +78,7 @@ public sealed class IsoXmlCenteredRectificationService
             new ReadOnlyCollection<IsoXmlCenteredRectificationOffsetRow>(offsetRows));
     }
 
-    private static IsoXmlCenteredRectificationOffsetRow CreateOffsetRow(IsoXmlLineString line, int passNumber, string baseName, double machineWidthMeters, double cosLatitude, SamplePoint markerA, SamplePoint markerB)
+    private static IsoXmlCenteredRectificationOffsetRow CreateOffsetRow(IsoXmlLineString line, int passNumber, int totalPassCount, string baseName, double machineWidthMeters, double cosLatitude, SamplePoint markerA, SamplePoint markerB)
     {
         if (line.Points.Count < 2)
         {
@@ -104,7 +104,14 @@ public sealed class IsoXmlCenteredRectificationService
             line.Designator ?? Strings.GuidancePathDefaultName,
             offsetACentimeters,
             offsetBCentimeters,
-            $"{baseName}({passNumber})_A{FormatSignedOffset(offsetACentimeters)}_B{FormatSignedOffset(offsetBCentimeters)}");
+            CreateSuggestedDesignator(baseName, passNumber, totalPassCount, offsetACentimeters, offsetBCentimeters));
+    }
+
+    private static string CreateSuggestedDesignator(string baseName, int passNumber, int totalPassCount, int offsetACentimeters, int offsetBCentimeters)
+    {
+        return passNumber == totalPassCount
+            ? $"{baseName}_Retta_A{FormatSignedOffset(offsetACentimeters)}_B{FormatSignedOffset(offsetBCentimeters)}"
+            : $"{baseName}_({passNumber})_A{FormatSignedOffset(offsetACentimeters)}_B{FormatSignedOffset(offsetBCentimeters)}";
     }
 
     private static IsoXmlLineString CreateMarkerLine(SamplePoint marker, double cosLatitude, string designator)

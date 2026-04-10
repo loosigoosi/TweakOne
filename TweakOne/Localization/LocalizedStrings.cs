@@ -23,6 +23,8 @@ internal sealed class LocalizedStrings
 
     public string SaveTargetPackageButton => Resources.SaveTargetPackageButton;
 
+    public string SaveSelectedTargetFieldPackageButton => Resources.SaveSelectedTargetFieldPackageButton;
+
     public string NoTargetFileLoaded => Resources.NoTargetFileLoaded;
 
     public string SourceFieldHeader => Resources.SourceFieldHeader;
@@ -125,11 +127,19 @@ internal sealed class LocalizedStrings
 
     public string OpenCenteredRectificationTemplateButton => Resources.OpenCenteredRectificationTemplateButton;
 
+    public string ApplyCenteredRectificationSourcePackageButton => Resources.ApplyCenteredRectificationSourcePackageButton;
+
+    public string ExportCenteredRectificationFieldPackageButton => Resources.ExportCenteredRectificationFieldPackageButton;
+
     public string ApplyCenteredRectificationTemplateButton => Resources.ApplyCenteredRectificationTemplateButton;
 
     public string OpenCenteredRectificationTemplatePickerTitle => Resources.OpenCenteredRectificationTemplatePickerTitle;
 
     public string SaveCenteredRectificationTemplatePickerTitle => Resources.SaveCenteredRectificationTemplatePickerTitle;
+
+    public string SaveCenteredRectificationSourcePackagePickerTitle => Resources.SaveCenteredRectificationSourcePackagePickerTitle;
+
+    public string ExportCenteredRectificationFieldPackagePickerTitle => Resources.ExportCenteredRectificationFieldPackagePickerTitle;
 
     public string CenteredRectificationTemplateLabel => Resources.CenteredRectificationTemplateLabel;
 
@@ -167,6 +177,8 @@ internal sealed class LocalizedStrings
 
     public string SaveTargetPackagePickerTitle => Resources.SaveTargetPackagePickerTitle;
 
+    public string SaveSelectedTargetFieldPackagePickerTitle => Resources.SaveSelectedTargetFieldPackagePickerTitle;
+
     public string OpenSourcePackagePickerTitle => Resources.OpenSourcePackagePickerTitle;
 
     public string OpenTargetPackagePickerTitle => Resources.OpenTargetPackagePickerTitle;
@@ -184,6 +196,8 @@ internal sealed class LocalizedStrings
     public string RectificationOffsetPositiveError => Resources.RectificationOffsetPositiveError;
 
     public string RectificationTolerancePositiveError => Resources.RectificationTolerancePositiveError;
+
+    public string SingleFieldExportPartfieldNotFoundError => Resources.SingleFieldExportPartfieldNotFoundError;
 
     public string UnnamedField => Resources.UnnamedField;
 
@@ -206,6 +220,8 @@ internal sealed class LocalizedStrings
     public string FormatLoadedCenteredRectificationTemplate(string path) => Format(Resources.StatusLoadedCenteredRectificationTemplate, path);
 
     public string FormatAppliedCenteredRectificationTemplate(int guidanceLineCount, int markerLineCount, string partfieldName, string path) => Format(Resources.StatusAppliedCenteredRectificationTemplate, guidanceLineCount, markerLineCount, partfieldName, path);
+
+    public string FormatAppliedCenteredRectificationSourcePackage(int guidanceLineCount, int markerLineCount, string partfieldName, string path) => Format(Resources.StatusAppliedCenteredRectificationSourcePackage, guidanceLineCount, markerLineCount, partfieldName, path);
 
     public string FormatClonedGuidanceLine(string guidanceLine, string targetField) => Format(Resources.StatusClonedGuidanceLine, guidanceLine, targetField);
 

@@ -19,7 +19,10 @@ internal sealed class MainWindowViewModel : ObservableObject
     private readonly IsoXmlGuidancePathGenerator _generator = new();
     private readonly IsoXmlGuidanceRectificationService _rectificationService = new();
     private readonly IsoXmlCenteredRectificationService _centeredRectificationService = new();
+    private readonly IsoXmlCenteredRectificationFieldInjectionService _centeredRectificationFieldInjectionService = new();
     private readonly IsoXmlCenteredRectificationTemplateInjectionService _centeredRectificationTemplateInjectionService = new();
+    private readonly IsoXmlLinkListService _linkListService = new();
+    private readonly IsoXmlAgcoPropService _agcoPropService = new();
     private TaskDocumentViewModel? _sourceDocument;
     private TaskDocumentViewModel? _targetDocument;
     private IsoXmlTaskDataDocument? _centeredRectificationTemplateDocument;
@@ -260,6 +263,7 @@ internal sealed class MainWindowViewModel : ObservableObject
             OnPropertyChanged(nameof(SelectedTargetPartfieldSummaryDisplay));
             OnPropertyChanged(nameof(CanCloneGuidancePath));
             OnPropertyChanged(nameof(CanDeleteTargetGuidancePath));
+            OnPropertyChanged(nameof(CanSaveSelectedTargetFieldPackage));
             OnPropertyChanged(nameof(CanAnalyzeRectification));
             OnPropertyChanged(nameof(CanApplyRectification));
             RefreshRectificationTargetPreview();
@@ -573,6 +577,10 @@ internal sealed class MainWindowViewModel : ObservableObject
 
     public bool CanUseCenteredRectification => SelectedCenteredRectificationPackage is not null;
 
+    public bool CanApplyCenteredRectificationSourcePackage => SelectedCenteredRectificationPackage?.Plan is not null;
+
+    public bool CanExportCenteredRectificationFieldPackage => SelectedCenteredRectificationPackage?.Plan is not null;
+
     public bool CanApplyCenteredRectificationTemplate => _centeredRectificationTemplateDocument is not null && SelectedCenteredRectificationPackage?.Plan is not null;
 
     public string RectificationAutomaticPassCountDisplay
@@ -602,6 +610,8 @@ internal sealed class MainWindowViewModel : ObservableObject
     public bool CanUseSourceAsTarget => _sourceDocument is not null;
 
     public bool CanDeleteTargetGuidancePath => SelectedTargetGuidancePath is not null && SelectedTargetPartfield is not null;
+
+    public bool CanSaveSelectedTargetFieldPackage => SelectedTargetPartfield is not null;
 
     public bool CanAnalyzeRectification => SelectedRectificationSourceGuidancePath is not null && SelectedTargetPartfield is not null && HasRectificationDesignator;
 
@@ -782,7 +792,7 @@ internal sealed class MainWindowViewModel : ObservableObject
         StatusMessage = Strings.FormatLoadedCenteredRectificationTemplate(CenteredRectificationTemplatePathDisplay);
     }
 
-    public void ApplyCenteredRectificationTemplate(string filePath, string? displayPath = null)
+    public void ApplyCenteredRectificationTemplate(string filePath, string? displayPath = null, string? linkListFilePath = null, string? agcoPropJsonPath = null)
     {
         var document = _centeredRectificationTemplateDocument ?? throw new InvalidOperationException(Strings.CenteredRectificationNoTemplateLoaded);
         var package = SelectedCenteredRectificationPackage ?? throw new InvalidOperationException(Strings.CenteredRectificationNoPlanError);
@@ -797,11 +807,43 @@ internal sealed class MainWindowViewModel : ObservableObject
             package.GeneratedLines);
 
         IsoXmlTaskDataSerializer.Save(document, filePath);
+        if (!string.IsNullOrWhiteSpace(linkListFilePath))
+        {
+            _linkListService.UpsertGuidanceLinks(linkListFilePath, document, result.InjectedGuidanceGroups);
+        }
+
+        if (!string.IsNullOrWhiteSpace(agcoPropJsonPath) && !string.IsNullOrWhiteSpace(linkListFilePath))
+        {
+            _agcoPropService.UpsertGuidanceGroups(agcoPropJsonPath, linkListFilePath, result.InjectedGuidanceGroups);
+        }
+
         var savedPath = displayPath ?? filePath;
         var partfieldName = string.IsNullOrWhiteSpace(result.TargetPartfield.Designator)
             ? result.TargetPartfield.Id ?? Strings.UnnamedField
             : result.TargetPartfield.Designator;
         StatusMessage = Strings.FormatAppliedCenteredRectificationTemplate(result.InjectedGuidanceLineCount, result.InjectedMarkerLineCount, partfieldName, savedPath);
+    }
+
+    public void ApplyCenteredRectificationSourcePackage(string filePath, string? displayPath = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+
+        var package = SelectedCenteredRectificationPackage ?? throw new InvalidOperationException(Strings.CenteredRectificationNoPlanError);
+        var plan = package.Plan ?? throw new InvalidOperationException(Strings.CenteredRectificationNoPlanError);
+        var document = IsoXmlTaskDataSerializer.Load(filePath);
+        var result = _centeredRectificationFieldInjectionService.Inject(
+            document,
+            package.SourcePartfield.Identifier,
+            package.SourcePartfield.DisplayName,
+            plan,
+            package.GeneratedLines);
+
+        IsoXmlTaskDataSerializer.Save(document, filePath);
+        var savedPath = displayPath ?? filePath;
+        var partfieldName = string.IsNullOrWhiteSpace(result.TargetPartfield.Designator)
+            ? result.TargetPartfield.Id ?? Strings.UnnamedField
+            : result.TargetPartfield.Designator;
+        StatusMessage = Strings.FormatAppliedCenteredRectificationSourcePackage(result.InjectedGuidanceLineCount, result.InjectedMarkerLineCount, partfieldName, savedPath);
     }
 
     private static void ReplacePartfields(ObservableCollection<PartfieldViewModel> target, IEnumerable<PartfieldViewModel> partfields)
@@ -842,6 +884,8 @@ internal sealed class MainWindowViewModel : ObservableObject
 
         SelectedCenteredRectificationPackage = CenteredRectificationPackages.FirstOrDefault();
         OnPropertyChanged(nameof(CanUseCenteredRectification));
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationSourcePackage));
+        OnPropertyChanged(nameof(CanExportCenteredRectificationFieldPackage));
         OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
     }
 
@@ -851,6 +895,8 @@ internal sealed class MainWindowViewModel : ObservableObject
         CenteredRectificationPreviewShapes.Clear();
         OnPropertyChanged(nameof(CenteredRectificationMachineWidthDisplay));
         OnPropertyChanged(nameof(CanUseCenteredRectification));
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationSourcePackage));
+        OnPropertyChanged(nameof(CanExportCenteredRectificationFieldPackage));
         OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
 
         var package = SelectedCenteredRectificationPackage;
@@ -869,6 +915,8 @@ internal sealed class MainWindowViewModel : ObservableObject
             package.BaseDesignator);
 
         package.Plan = plan;
+        OnPropertyChanged(nameof(CanApplyCenteredRectificationSourcePackage));
+        OnPropertyChanged(nameof(CanExportCenteredRectificationFieldPackage));
         OnPropertyChanged(nameof(CanApplyCenteredRectificationTemplate));
 
         foreach (var row in plan.OffsetRows)

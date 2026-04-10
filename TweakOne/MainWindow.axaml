@@ -21,6 +21,9 @@
         <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="12" Margin="0,12,0,12">
             <Button Content="{Binding Strings.OpenTargetPackageButton}" Click="OpenTargetDocument_Click" />
             <Button Content="{Binding Strings.SaveTargetPackageButton}" Click="SaveTargetDocument_Click" />
+            <Button Content="{Binding Strings.SaveSelectedTargetFieldPackageButton}"
+                    Click="SaveSelectedTargetFieldPackage_Click"
+                    IsEnabled="{Binding CanSaveSelectedTargetFieldPackage}" />
             <TextBlock VerticalAlignment="Center" Text="{Binding TargetFilePathDisplay}" />
         </StackPanel>
 
@@ -274,10 +277,10 @@
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,12,0" Width="280">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Padding="12,12,2,14" Margin="0,0,12,0" Width="280">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" 
                                       HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel Spacing="12">
+                            <StackPanel Spacing="12" Margin="0,0,20,0">
                                 <TextBlock Text="{Binding Strings.RectificationControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
                                 <TextBlock Text="{Binding Strings.RectificationDesignatorLabel}" />
                                 <TextBox Text="{Binding RectificationDesignator}" Watermark="{Binding Strings.RectificationDesignatorWatermark}" />
@@ -483,6 +486,12 @@
                                       HorizontalScrollBarVisibility="Disabled">
                             <StackPanel Spacing="12">
                                 <TextBlock Text="{Binding Strings.CenteredRectificationControlsHeader}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                <Button Content="{Binding Strings.ApplyCenteredRectificationSourcePackageButton}"
+                                        Click="ApplyCenteredRectificationSourcePackage_Click"
+                                        IsEnabled="{Binding CanApplyCenteredRectificationSourcePackage}" />
+                                <Button Content="{Binding Strings.ExportCenteredRectificationFieldPackageButton}"
+                                        Click="ExportCenteredRectificationFieldPackage_Click"
+                                        IsEnabled="{Binding CanExportCenteredRectificationFieldPackage}" />
                                 <Button Content="{Binding Strings.OpenCenteredRectificationTemplateButton}" Click="OpenCenteredRectificationTemplate_Click" />
                                 <Button Content="{Binding Strings.ApplyCenteredRectificationTemplateButton}"
                                         Click="ApplyCenteredRectificationTemplate_Click"
